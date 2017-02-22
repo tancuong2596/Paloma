@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "373606241618",
+    "firebase_url": "https://paloma-86021.firebaseio.com",
+    "project_id": "paloma-86021",
+    "storage_bucket": "paloma-86021.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:373606241618:android:36129faa7b3e8cc1",
+        "android_client_info": {
+          "package_name": "cit.edu.paloma"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "373606241618-mpgo0ajd98f2lnd51qqs3ahcm5pkg0bh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cit.edu.paloma",
+            "certificate_hash": "ad7b44ace46a0d290221a12ee149f404b6b8b1f1"
+          }
+        },
+        {
+          "client_id": "373606241618-7vcj4k4u2ndclcve9fgn3r9v29hnvisn.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "373606241618-nb20m1ssp0fscp2176b9kb3t2bojq8tk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7QSOae2wJawWdjAPpa9_-vX8lBp-PfsE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
