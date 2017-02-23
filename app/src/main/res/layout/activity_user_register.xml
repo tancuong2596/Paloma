@@ -46,7 +46,7 @@
         app:layout_constraintTop_toBottomOf="@id/title_new_user_text" />
 
     <EditText
-        android:id="@+id/register_user_name_edit"
+        android:id="@+id/register_full_name_edit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textColor="@color/colorAccent"
@@ -64,7 +64,7 @@
         android:text="@string/email"
         android:textColor="@color/colorAccent"
         app:layout_constraintLeft_toRightOf="@id/left_margin_guider"
-        app:layout_constraintTop_toBottomOf="@id/register_user_name_edit"/>
+        app:layout_constraintTop_toBottomOf="@id/register_full_name_edit"/>
 
     <EditText
         android:id="@+id/register_email_edit"

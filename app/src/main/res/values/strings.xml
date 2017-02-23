@@ -6,6 +6,7 @@
     <string name="password">Password</string>
     <string name="sign_in">Sign In</string>
     <string name="new_user">New User</string>
-    <string name="name">User name</string>
+    <string name="name">Full name</string>
     <string name="new_user_button_text">create new user</string>
+    <string name="or">or</string>
 </resources>
