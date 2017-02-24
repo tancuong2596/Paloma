@@ -55,6 +55,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/colorAccent"
+            android:inputType="textWebEmailAddress"
             app:layout_constraintLeft_toRightOf="@id/left_margin_guider"
             app:layout_constraintRight_toLeftOf="@id/right_margin_guider"
             app:layout_constraintTop_toBottomOf="@id/register_user_name_text"
@@ -105,6 +106,7 @@
             tools:text="mypassword" />
 
         <Button
+            android:id="@+id/register_button"
             style="@style/NormalButtonTheme"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

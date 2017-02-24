@@ -18,14 +18,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_begin="20dp" />
+            app:layout_constraintGuide_begin="20dp"
+            tools:layout_editor_absoluteY="0dp"
+            tools:layout_editor_absoluteX="20dp" />
 
         <android.support.constraint.Guideline
             android:id="@+id/right_margin_guider"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_end="20dp" />
+            app:layout_constraintGuide_end="20dp"
+            tools:layout_editor_absoluteY="0dp"
+            tools:layout_editor_absoluteX="-19dp" />
 
         <TextView
             android:id="@+id/title_new_user_text"
@@ -37,7 +41,8 @@
             android:textColor="@color/colorAccent"
             android:textSize="40sp"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent" />
+            app:layout_constraintRight_toRightOf="parent"
+            tools:layout_editor_absoluteY="50dp" />
 
         <TextView
             android:id="@+id/register_user_name_text"
@@ -47,18 +52,18 @@
             android:text="@string/name"
             android:textAllCaps="true"
             android:textColor="@color/colorAccent"
-            app:layout_constraintLeft_toRightOf="@id/left_margin_guider"
-            app:layout_constraintTop_toBottomOf="@id/title_new_user_text" />
+            app:layout_constraintTop_toBottomOf="@+id/title_new_user_text"
+            app:layout_constraintLeft_toLeftOf="@+id/left_margin_guider" />
 
         <EditText
             android:id="@+id/register_full_name_edit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/colorAccent"
-            app:layout_constraintLeft_toRightOf="@id/left_margin_guider"
-            app:layout_constraintRight_toLeftOf="@id/right_margin_guider"
-            app:layout_constraintTop_toBottomOf="@id/register_user_name_text"
-            tools:text="Nguyen Tan Cuong" />
+            app:layout_constraintRight_toLeftOf="@+id/right_margin_guider"
+            app:layout_constraintTop_toBottomOf="@+id/register_user_name_text"
+            tools:text="Nguyen Tan Cuong"
+            app:layout_constraintLeft_toLeftOf="@+id/left_margin_guider" />
 
         <TextView
             android:id="@+id/register_email_text"
@@ -68,18 +73,19 @@
             android:text="@string/email"
             android:textAllCaps="true"
             android:textColor="@color/colorAccent"
-            app:layout_constraintLeft_toRightOf="@id/left_margin_guider"
-            app:layout_constraintTop_toBottomOf="@id/register_full_name_edit" />
+            app:layout_constraintTop_toBottomOf="@+id/register_full_name_edit"
+            app:layout_constraintLeft_toLeftOf="@+id/left_margin_guider" />
 
         <EditText
             android:id="@+id/register_email_edit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/colorAccent"
-            app:layout_constraintLeft_toRightOf="@id/left_margin_guider"
-            app:layout_constraintRight_toLeftOf="@id/right_margin_guider"
-            app:layout_constraintTop_toBottomOf="@id/register_email_text"
-            tools:text="tancuong2596@gmail.com" />
+            android:inputType="textWebEmailAddress"
+            app:layout_constraintRight_toLeftOf="@+id/right_margin_guider"
+            app:layout_constraintTop_toBottomOf="@+id/register_email_text"
+            tools:text="tancuong2596@gmail.com"
+            app:layout_constraintLeft_toLeftOf="@+id/left_margin_guider" />
 
         <TextView
             android:id="@+id/register_pass_text"
@@ -89,8 +95,8 @@
             android:text="@string/password"
             android:textAllCaps="true"
             android:textColor="@color/colorAccent"
-            app:layout_constraintLeft_toRightOf="@id/left_margin_guider"
-            app:layout_constraintTop_toBottomOf="@id/register_email_edit" />
+            app:layout_constraintTop_toBottomOf="@+id/register_email_edit"
+            app:layout_constraintLeft_toLeftOf="@+id/left_margin_guider" />
 
         <EditText
             android:id="@+id/register_pass_edit"
@@ -98,20 +104,20 @@
             android:layout_height="wrap_content"
             android:inputType="textPassword"
             android:textColor="@color/colorAccent"
-            app:layout_constraintLeft_toRightOf="@id/left_margin_guider"
-            app:layout_constraintRight_toLeftOf="@id/right_margin_guider"
-            app:layout_constraintTop_toBottomOf="@id/register_pass_text"
-            tools:text="mypassword" />
+            app:layout_constraintRight_toLeftOf="@+id/right_margin_guider"
+            app:layout_constraintTop_toBottomOf="@+id/register_pass_text"
+            tools:text="mypassword"
+            app:layout_constraintLeft_toLeftOf="@+id/left_margin_guider" />
 
         <Button
+            android:id="@+id/register_button"
             style="@style/NormalButtonTheme"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
             android:text="@string/new_user_button_text"
-            app:layout_constraintTop_toBottomOf="@id/register_pass_edit"
-            app:layout_constraintLeft_toRightOf="@id/left_margin_guider"
-            app:layout_constraintRight_toLeftOf="@id/right_margin_guider" />
+            app:layout_constraintTop_toBottomOf="@+id/register_pass_edit"
+            app:layout_constraintRight_toLeftOf="@+id/right_margin_guider"
+            app:layout_constraintLeft_toLeftOf="@+id/left_margin_guider" />
 
     </android.support.constraint.ConstraintLayout>
 
