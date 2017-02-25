@@ -13,8 +13,6 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import cit.edu.paloma.utils.SignInUtils;
-
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -33,12 +31,7 @@ public class MainActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.text_message)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SignInUtils.signOut(new ResultCallback() {
-                    @Override
-                    public void onResult(@NonNull Result result) {
-                        Log.v(TAG, "result of sign-out");
-                    }
-                });
+                FirebaseAuth.getInstance().signOut();
             }
         });
 

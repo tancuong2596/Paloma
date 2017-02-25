@@ -41,6 +41,7 @@ dependencies {
     // Firebase UI
     compile 'com.firebaseui:firebase-ui-database:0.4.0'
 
+    compile 'com.facebook.android:facebook-android-sdk:[4,5)'
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
