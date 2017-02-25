@@ -121,7 +121,6 @@
             android:layout_centerHorizontal="true"
             android:background="@color/colorPrimary"
             android:scaleType="fitCenter"
-            android:src="@drawable/sign_in_button"
             app:layout_constraintBottom_toBottomOf="@id/sign_in_button"
             app:layout_constraintLeft_toLeftOf="@id/center_guideline"
             app:layout_constraintRight_toRightOf="parent"

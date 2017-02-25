@@ -6,6 +6,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -112,22 +113,33 @@ public class SignInActivity extends AppCompatActivity
 
     private void signInWithEmail() {
         final String email = mEmailEdit.getText().toString();
-        String pass = mEmailEdit.getText().toString();
+        String pass = mPassEdit.getText().toString();
 
         if (!validateInput(email, pass)) {
             return;
         }
 
         showProgressBar(true);
-        SignInUtils.signInWithEmailAndPassword(email, pass, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (!task.isSuccessful()) {
-                    Toast.makeText(SignInActivity.this, "Cannot sign in with email " + email, Toast.LENGTH_SHORT).show();
-                }
-                showProgressBar(false);
-            }
-        });
+
+        FirebaseAuth
+                .getInstance()
+                .signInWithEmailAndPassword(email, pass)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (!task.isSuccessful()) {
+                            Exception e = task.getException();
+                            String message = "Cannot sign in";
+                            if (e != null) {
+                                message = e.getMessage();
+                            }
+                            Toast.makeText(SignInActivity.this, message, Toast.LENGTH_LONG).show();
+                        } else {
+                            Log.v(TAG, Boolean.toString(FirebaseAuth.getInstance().getCurrentUser() == null));
+                        }
+                        showProgressBar(false);
+                    }
+                });
     }
 
     private void showProgressBar(boolean b) {

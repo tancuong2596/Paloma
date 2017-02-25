@@ -32,7 +32,6 @@ public final class SignInUtils {
 
     public static GoogleApiClient getGoogleApiClient(Context context) {
         if (mGoogleApiClient == null) {
-            Log.v("SignInUtils", "mGoogleApiClient is null");
             GoogleSignInOptions gso = SignInUtils.getGoogleSignInOptions(context);
             mGoogleApiClient = new GoogleApiClient.Builder(context)
                     .enableAutoManage((FragmentActivity) context, (GoogleApiClient.OnConnectionFailedListener) context)
@@ -74,9 +73,7 @@ public final class SignInUtils {
     public static void signOut(@NonNull ResultCallback resultCallback) {
         FirebaseAuth.getInstance().signOut();
         if (mGoogleApiClient != null) {
-            Log.v("SignInUtils", "mGoogleApiClient = " + mGoogleApiClient);
             if (mGoogleApiClient.isConnected()) {
-                Log.v("SignInUtils", "mGoogleApiClient.isConnected() = " + mGoogleApiClient.isConnected());
                 Auth.GoogleSignInApi
                         .signOut(mGoogleApiClient)
                         .setResultCallback(resultCallback);

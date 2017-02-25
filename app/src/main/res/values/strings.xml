@@ -9,4 +9,8 @@
     <string name="name">Full name</string>
     <string name="new_user_button_text">create new user</string>
     <string name="or">or</string>
+    <string name="log_in_with_google">Log in with google</string>
+    <string name="log_in_with_facebook">Log in with facebook</string>
+    <string name="login_with_twitter">Login with twitter</string>
+    <string name="login_with_github">Login with github</string>
 </resources>

@@ -54,11 +54,13 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(MainActivity.this, SignInActivity.class));
                     finish();
                 } else {
-                    Log.v(TAG, String.format("%s: %s: %s",
-                            user.getDisplayName(),
-                            user.getEmail(),
-                            user.getPhotoUrl()
-                    ));
+                    ((TextView) findViewById(R.id.text_message)).setText(
+                            String.format("%s: %s: %s",
+                                    user.getDisplayName(),
+                                    user.getEmail(),
+                                    user.getPhotoUrl()
+                            )
+                    );
                 }
             }
         };
