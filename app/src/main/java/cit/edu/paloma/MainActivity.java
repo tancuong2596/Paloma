@@ -6,12 +6,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
 
-        ((TextView) findViewById(R.id.text_message)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.user_name_text).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 FirebaseAuth.getInstance().signOut();
@@ -47,13 +49,12 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(MainActivity.this, SignInActivity.class));
                     finish();
                 } else {
-                    ((TextView) findViewById(R.id.text_message)).setText(
-                            String.format("%s: %s: %s",
-                                    user.getDisplayName(),
-                                    user.getEmail(),
-                                    user.getPhotoUrl()
-                            )
-                    );
+                    ((TextView)findViewById(R.id.user_name_text)).setText(user.getDisplayName());
+                    ((TextView)findViewById(R.id.user_email_text)).setText(user.getEmail());
+                    Picasso
+                            .with(MainActivity.this)
+                            .load(user.getPhotoUrl())
+                            .into((ImageView)findViewById(R.id.avatar_image));
                 }
             }
         };

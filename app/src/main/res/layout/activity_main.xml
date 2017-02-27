@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,9 +11,29 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="cit.edu.paloma.MainActivity">
 
+    <ImageView
+        android:id="@+id/avatar_image"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:src="@mipmap/ic_completed"/>
     <TextView
-        android:id="@+id/text_message"
+        android:id="@+id/user_name_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
-</RelativeLayout>
+        android:textColor="@android:color/black"
+        android:text="userName"
+        app:layout_constraintLeft_toLeftOf="@id/avatar_image"
+        app:layout_constraintRight_toRightOf="@id/avatar_image"
+        app:layout_constraintTop_toBottomOf="@id/avatar_image" />
+    <TextView
+        android:id="@+id/user_email_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="@id/user_name_text"
+        app:layout_constraintRight_toRightOf="@id/user_name_text"
+        app:layout_constraintTop_toBottomOf="@id/user_name_text"
+        android:text="useremail@domain.com"/>
+</android.support.constraint.ConstraintLayout>

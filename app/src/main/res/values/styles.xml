@@ -15,7 +15,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="WaitingTheme" parent="ThemeOverlay.AppCompat.Dialog">
+    <style name="DialogTheme" parent="ThemeOverlay.AppCompat.Dialog">
         <!-- Customize your theme here. -->
         <item name="colorAccent">@color/colorPrimary</item>
     </style>
