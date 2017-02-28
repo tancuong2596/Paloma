@@ -12,15 +12,14 @@ public class User {
     private String fullName;
     private String avatar;
     private boolean isOnline;
+    private boolean isMale;
 
-    public User(String email, String fullName, String avatar, boolean isOnline) {
+    public User(String email, String fullName, String avatar, boolean isOnline, boolean isMale) {
         this.email = email;
         this.fullName = fullName;
         this.avatar = avatar;
         this.isOnline = isOnline;
-    }
-
-    public User() {
+        this.isMale = isMale;
     }
 
     public int getUserId() {
@@ -63,14 +62,11 @@ public class User {
         isOnline = online;
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "userId=" + userId +
-                ", email='" + email + '\'' +
-                ", fullName='" + fullName + '\'' +
-                ", avatar='" + avatar + '\'' +
-                ", isOnline=" + isOnline +
-                '}';
+    public boolean isMale() {
+        return isMale;
+    }
+
+    public void setMale(boolean male) {
+        isMale = male;
     }
 }

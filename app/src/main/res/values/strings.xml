@@ -14,9 +14,8 @@
     <string name="login_with_twitter">Login with twitter</string>
     <string name="login_with_github">Login with github</string>
     <string name="please_wait">Please wait...</string>
-    <string name="facebook_app_id">257498594703969</string>
-    <string name="fb_login_protocol_scheme">fb257498594703969</string>
-    <string name="twitter_consumer_key">9t1ry7lQOPVH5mPeN6RuNSr6o</string>
-    <string name="twitter_consumer_secret">9lCc0rYfcazugLzkyIHG4CVsOouCEtpHmio8lV3z0FdRKlaUfy</string>
-    <string name="github_access_key">aa98a1792846aa6805e8a51348f648f4bf7763b2</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="gender">Gender</string>
+    <string name="save_user_profile">save user profile</string>
 </resources>

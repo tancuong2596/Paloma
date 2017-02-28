@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="facebook_app_id">257498594703969</string>
+    <string name="fb_login_protocol_scheme">fb257498594703969</string>
+    <string name="twitter_consumer_key">9t1ry7lQOPVH5mPeN6RuNSr6o</string>
+    <string name="twitter_consumer_secret">9lCc0rYfcazugLzkyIHG4CVsOouCEtpHmio8lV3z0FdRKlaUfy</string>
+    <string name="github_access_key">aa98a1792846aa6805e8a51348f648f4bf7763b2</string>
+</resources>

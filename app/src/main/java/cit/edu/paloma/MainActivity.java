@@ -42,12 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
         setupAuthStateListener();
 
-        FirebaseUtils.addUser(new User(
-                "abc@xyz.com",
-                "sdk dk",
-                "skdgk",
-                false
-        ));
+        // todo: for debugging
+        startActivity(new Intent(MainActivity.this, UserDetailsActivity.class));
     }
 
     private void setupAuthStateListener() {
