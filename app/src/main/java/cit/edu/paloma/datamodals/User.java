@@ -7,50 +7,70 @@ import android.net.Uri;
  */
 
 public class User {
-    private int mUserId;
-    private String mEmail;
-    private String mFullName;
-    private Uri mAvatar;
+    private int userId;
+    private String email;
+    private String fullName;
+    private String avatar;
+    private boolean isOnline;
 
-    public User(int mUserId, String mEmail, String mFullName, Uri mAvatar) {
-        this.mUserId = mUserId;
-        this.mEmail = mEmail;
-        this.mFullName = mFullName;
-        this.mAvatar = mAvatar;
+    public User(String email, String fullName, String avatar, boolean isOnline) {
+        this.email = email;
+        this.fullName = fullName;
+        this.avatar = avatar;
+        this.isOnline = isOnline;
     }
 
     public User() {
     }
 
     public int getUserId() {
-        return mUserId;
+        return userId;
     }
 
-    public void setUserId(int mUserId) {
-        this.mUserId = mUserId;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getEmail() {
-        return mEmail;
+        return email;
     }
 
-    public void setEmail(String mEmail) {
-        this.mEmail = mEmail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getFullName() {
-        return mFullName;
+        return fullName;
     }
 
-    public void setFullName(String mFullName) {
-        this.mFullName = mFullName;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
-    public Uri getAvatar() {
-        return mAvatar;
+    public String getAvatar() {
+        return avatar;
     }
 
-    public void setAvatar(Uri mAvatar) {
-        this.mAvatar = mAvatar;
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public boolean isOnline() {
+        return isOnline;
+    }
+
+    public void setOnline(boolean online) {
+        isOnline = online;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", email='" + email + '\'' +
+                ", fullName='" + fullName + '\'' +
+                ", avatar='" + avatar + '\'' +
+                ", isOnline=" + isOnline +
+                '}';
     }
 }

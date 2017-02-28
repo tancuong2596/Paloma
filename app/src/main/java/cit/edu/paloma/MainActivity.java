@@ -15,6 +15,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
+import cit.edu.paloma.datamodals.User;
+import cit.edu.paloma.utils.FirebaseUtils;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -38,6 +41,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         setupAuthStateListener();
+
+        FirebaseUtils.addUser(new User(
+                "abc@xyz.com",
+                "sdk dk",
+                "skdgk",
+                false
+        ));
     }
 
     private void setupAuthStateListener() {
