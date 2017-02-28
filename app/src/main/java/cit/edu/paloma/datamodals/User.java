@@ -1,4 +1,4 @@
-package cit.edu.paloma.utils;
+package cit.edu.paloma.datamodals;
 
 import android.net.Uri;
 
