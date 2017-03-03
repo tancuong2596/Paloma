@@ -47,7 +47,7 @@ import static android.provider.MediaStore.*;
 
 public class UserDetailsActivity
         extends AppCompatActivity
-        implements View.OnClickListener, LoaderManager.LoaderCallbacks<Void> {
+        implements View.OnClickListener, LoaderManager.LoaderCallbacks<Intent> {
 
     private static final int ACTION_REQUEST_CAMERA = 0;
     private static final int ACTION_REQUEST_GALLERY = 1;
@@ -60,15 +60,27 @@ public class UserDetailsActivity
     private RadioButton maleRadio;
     private RadioButton femaleRadio;
     private ImageView avatarImage;
+
     private Vector<Exception> mExceptions = new Vector<>();
+    private ProgressDialog mProgressDialog;
 
     private boolean isAvatarSelected;
-    private ProgressDialog mProgressDialog;
+    private boolean mCreateNew;
+    private String mEmail;
+    private String mFullName;
+    private String mAvatar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_details);
+
+        Bundle bundle = getIntent().getExtras();
+
+        mCreateNew = bundle.getBoolean("createNew");
+        mEmail = bundle.getString("email");
+        mFullName = bundle.getString("fullName");
+        mAvatar = bundle.getString("avatar");
 
         saveUserProfileButton = (Button) findViewById(R.id.save_user_profile_button);
         fullNameEdit = (EditText) findViewById(R.id.detail_full_name_edit);
@@ -170,7 +182,7 @@ public class UserDetailsActivity
         }
 
         if (!maleRadio.isChecked() && !femaleRadio.isChecked()) {
-            ((TextView)findViewById(R.id.detail_gender_text)).setError("Select the gender");
+            ((TextView) findViewById(R.id.detail_gender_text)).setError("Select the gender");
             isValid = false;
         }
 
@@ -194,12 +206,12 @@ public class UserDetailsActivity
     private void clearErrors() {
         emailEdit.setError(null);
         fullNameEdit.setError(null);
-        ((TextView)findViewById(R.id.detail_gender_text)).setError(null);
+        ((TextView) findViewById(R.id.detail_gender_text)).setError(null);
     }
 
     @Override
-    public Loader<Void> onCreateLoader(int id, Bundle args) {
-        return new AsyncTaskLoader<Void>(this) {
+    public Loader<Intent> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<Intent>(this) {
 
             @Override
             protected void onStartLoading() {
@@ -240,66 +252,23 @@ public class UserDetailsActivity
             }
 
             @Override
-            public Void loadInBackground() {
+            public Intent loadInBackground() {
                 final String avatarLink = uploadImageToImgur();
 
-                final String email = emailEdit.getText().toString();
+                Intent intent = new Intent();
 
-                final User user = new User(
-                        email,
-                        fullNameEdit.getText().toString(),
-                        avatarLink,
-                        false,
-                        maleRadio.isChecked()
-                );
+                intent.putExtra("email", emailEdit.getText().toString());
+                intent.putExtra("fullName", fullNameEdit.getText().toString());
+                intent.putExtra("avatar", avatarLink);
+                intent.putExtra("isMale", maleRadio.isChecked());
 
-                FirebaseUtils
-                        .getUsersRef()
-                        .orderByChild("email")
-                        .equalTo(email)
-                        .addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                if (dataSnapshot.getChildrenCount() == 0) {
-                                    emailEdit.setError("User with this email doesn't exist");
-                                    stopLoading();
-                                    return;
-                                }
-
-                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                    snapshot
-                                            .getRef()
-                                            .updateChildren(user.toMap())
-                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<Void> task) {
-                                                    if (!task.isSuccessful()) {
-                                                        mExceptions.add(task.getException());
-                                                    }
-                                                }
-                                            })
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    mExceptions.add(e);
-                                                }
-                                            });
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-
-                return null;
+                return intent;
             }
         };
     }
 
     @Override
-    public void onLoadFinished(Loader<Void> loader, Void data) {
+    public void onLoadFinished(Loader<Intent> loader, Intent data) {
         mProgressDialog.hide();
         if (!mExceptions.isEmpty()) {
             new AlertDialog.Builder(UserDetailsActivity.this)
@@ -316,11 +285,17 @@ public class UserDetailsActivity
                     .setIcon(R.mipmap.ic_completed)
                     .setMessage("User details successfully saved")
                     .show();
+
+            setResult(RESULT_OK, data);
+
+            if (mCreateNew) {
+                finish();
+            }
         }
     }
 
     @Override
-    public void onLoaderReset(Loader<Void> loader) {
+    public void onLoaderReset(Loader<Intent> loader) {
 
     }
 }

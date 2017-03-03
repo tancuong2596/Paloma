@@ -1,107 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary">
 
-    <RelativeLayout
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/waiting_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:visibility="invisible">
 
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/waiting_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="invisible">
+        <ProgressBar
+            android:id="@+id/progressbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-            <ProgressBar
-                android:id="@+id/progressbar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/progressbar"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginTop="12dp"
+            android:textSize="16sp"
+            android:text="@string/please_wait"
+            android:textColor="@android:color/white"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/please_wait"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/progressbar" />
+    </android.support.constraint.ConstraintLayout>
 
-        </android.support.constraint.ConstraintLayout>
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/sign_in_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/sign_in_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/logo_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="sans-serif-thin"
+            android:gravity="center"
+            android:text="@string/paloma"
+            android:textAlignment="center"
+            android:textColor="@android:color/white"
+            android:textSize="80sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/logo_image"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:fontFamily="sans-serif-thin"
-                android:gravity="center"
-                android:text="@string/paloma"
-                android:textAlignment="center"
-                android:textColor="@android:color/white"
-                android:textSize="80sp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <Button
+            android:id="@+id/google_plus_button"
+            app:layout_constraintLeft_toLeftOf="@+id/logo_image"
+            app:layout_constraintRight_toRightOf="@+id/logo_image"
+            app:layout_constraintTop_toBottomOf="@+id/logo_image"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginTop="48dp"
+            android:drawableLeft="@drawable/ic_gplus"
+            android:background="@drawable/google_plus_button"
+            android:text="@string/log_in_with_google"
+            style="@style/sign_in_button" />
 
-            <Button
-                android:id="@+id/google_plus_button"
-                style="@style/sign_in_button"
-                android:layout_marginTop="24dp"
-                android:background="@drawable/google_plus_button"
-                android:drawableLeft="@drawable/ic_gplus"
-                android:text="@string/log_in_with_google"
-                app:layout_constraintLeft_toLeftOf="@+id/logo_image"
-                app:layout_constraintRight_toRightOf="@+id/logo_image"
-                app:layout_constraintTop_toBottomOf="@+id/logo_image" />
 
-            <Button
-                android:id="@+id/facebook_button"
-                style="@style/sign_in_button"
-                android:background="@drawable/facebook_button"
-                android:drawableLeft="@drawable/ic_facebook"
-                android:text="@string/log_in_with_facebook"
-                app:layout_constraintLeft_toLeftOf="@+id/google_plus_button"
-                app:layout_constraintRight_toRightOf="@+id/google_plus_button"
-                app:layout_constraintTop_toBottomOf="@+id/google_plus_button" />
 
-            <Button
-                android:id="@+id/twitter_button"
-                style="@style/sign_in_button"
-                android:background="@drawable/twitter_button"
-                android:drawableLeft="@drawable/ic_twitter"
-                android:text="@string/login_with_twitter"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintLeft_toLeftOf="@+id/facebook_button"
-                app:layout_constraintRight_toRightOf="@+id/facebook_button"
-                app:layout_constraintTop_toBottomOf="@+id/facebook_button" />
+    </android.support.constraint.ConstraintLayout>
 
-            <Button
-                android:id="@+id/github_button"
-                style="@style/sign_in_button"
-                android:background="@drawable/github_button"
-                android:drawableLeft="@drawable/ic_github"
-                android:text="@string/login_with_github"
-                app:layout_constraintLeft_toLeftOf="@+id/twitter_button"
-                app:layout_constraintRight_toRightOf="@+id/twitter_button"
-                app:layout_constraintTop_toBottomOf="@+id/twitter_button" />
-
-        </android.support.constraint.ConstraintLayout>
-
-    </RelativeLayout>
-
-</ScrollView>
+</RelativeLayout>

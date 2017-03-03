@@ -53,17 +53,11 @@ public class SignInActivity
     private static final int RC_GOOGLE_SIGN_IN = 0;
     private static final String TAG = SignInActivity.class.getSimpleName();
     private Button mGooglePlusButton;
-    private Button mFacebookButton;
-    private Button mTwitterButton;
-    private Button mGithubButton;
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
     private ConstraintLayout mWaitingLayout;
     private ConstraintLayout mSignInLayout;
     private String mServiceName;
-    private CallbackManager mCallbackManager;
-    private LoginButton mFacebookLoginButton;
-    private TwitterLoginButton mTwitterLoginButton;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,61 +65,7 @@ public class SignInActivity
         setContentView(R.layout.activity_sign_in);
         initViews();
 
-
         mAuth = FirebaseAuth.getInstance();
-
-        mCallbackManager = CallbackManager.Factory.create();
-        mFacebookLoginButton = new LoginButton(this);
-        Log.v(TAG, mFacebookButton.toString());
-        mFacebookLoginButton.setReadPermissions("email", "public_profile");
-
-        mFacebookLoginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                firebaseLogInWithFacebook(loginResult.getAccessToken());
-            }
-
-            @Override
-            public void onCancel() {
-                new AlertDialog.Builder(SignInActivity.this, R.style.DialogTheme)
-                        .setIcon(R.mipmap.ic_aborted)
-                        .setMessage("Facebook login cancelled")
-                        .show();
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                String message = error.getMessage();
-                new AlertDialog.Builder(SignInActivity.this, R.style.DialogTheme)
-                        .setIcon(R.mipmap.ic_failed)
-                        .setTitle("Log in failed")
-                        .setMessage(message)
-                        .show();
-            }
-        });
-
-        TwitterAuthConfig twitterAuthConfig = new TwitterAuthConfig(
-                getString(R.string.twitter_consumer_key),
-                getString(R.string.twitter_consumer_secret)
-        );
-        Fabric.with(this, new Twitter(twitterAuthConfig));
-        mTwitterLoginButton = new TwitterLoginButton(this);
-        mTwitterLoginButton.setCallback(new Callback<TwitterSession>() {
-            @Override
-            public void success(com.twitter.sdk.android.core.Result<TwitterSession> result) {
-                firebaseLogInWithTwitter(result.data);
-            }
-
-            @Override
-            public void failure(TwitterException exception) {
-                String message = exception.getMessage();
-                new AlertDialog.Builder(SignInActivity.this, R.style.DialogTheme)
-                        .setIcon(R.mipmap.ic_failed)
-                        .setTitle("Log in failed")
-                        .setMessage(message)
-                        .show();
-            }
-        });
     }
 
     @Override
@@ -142,16 +82,10 @@ public class SignInActivity
 
     private void initViews() {
         mGooglePlusButton = (Button) findViewById(R.id.google_plus_button);
-        mFacebookButton = (Button) findViewById(R.id.facebook_button);
-        mTwitterButton = (Button) findViewById(R.id.twitter_button);
-        mGithubButton = (Button) findViewById(R.id.github_button);
         mWaitingLayout = (ConstraintLayout) findViewById(R.id.waiting_layout);
         mSignInLayout = (ConstraintLayout) findViewById(R.id.sign_in_layout);
 
         mGooglePlusButton.setOnClickListener(this);
-        mFacebookButton.setOnClickListener(this);
-        mTwitterButton.setOnClickListener(this);
-        mGithubButton.setOnClickListener(this);
     }
 
     private void showWaitingScreen(boolean yes) {
@@ -170,18 +104,6 @@ public class SignInActivity
             case R.id.google_plus_button:
                 signInWithGoogle();
                 mServiceName = "google";
-                break;
-            case R.id.facebook_button:
-                mServiceName = "facebook";
-                mFacebookLoginButton.callOnClick();
-                break;
-            case R.id.twitter_button:
-                mServiceName = "twitter";
-                mTwitterLoginButton.callOnClick();
-                break;
-            case R.id.github_button:
-                mServiceName = "github";
-                firebaseLogInWithGithub();
                 break;
         }
     }
@@ -211,8 +133,6 @@ public class SignInActivity
                 firebaseSignInWithGoogle(result);
                 break;
         }
-        mCallbackManager.onActivityResult(requestCode, resultCode, data);
-        mTwitterLoginButton.onActivityResult(requestCode, resultCode, data);
     }
 
     private void firebaseSignInWithGoogle(GoogleSignInResult result) {
@@ -232,39 +152,6 @@ public class SignInActivity
                     .signInWithCredential(cred)
                     .addOnCompleteListener(this, mOnCompleteListener);
         }
-    }
-
-    private void firebaseLogInWithFacebook(AccessToken accessToken) {
-        showWaitingScreen(true);
-
-        AuthCredential credential = FacebookAuthProvider.getCredential(accessToken.getToken());
-
-        mAuth
-                .signInWithCredential(credential)
-                .addOnCompleteListener(this, mOnCompleteListener);
-    }
-
-    private void firebaseLogInWithTwitter(TwitterSession data) {
-        showWaitingScreen(true);
-
-        AuthCredential credential = TwitterAuthProvider.getCredential(
-                data.getAuthToken().token,
-                data.getAuthToken().secret
-        );
-
-        mAuth
-                .signInWithCredential(credential)
-                .addOnCompleteListener(mOnCompleteListener);
-    }
-
-    private void firebaseLogInWithGithub() {
-        showWaitingScreen(true);
-
-        AuthCredential credential = GithubAuthProvider.getCredential(getString(R.string.github_access_key));
-
-        mAuth
-                .signInWithCredential(credential)
-                .addOnCompleteListener(mOnCompleteListener);
     }
 
     @Override

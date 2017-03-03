@@ -26,8 +26,8 @@ public class FirebaseUtils {
         return FirebaseDatabase.getInstance().getReference().child("users");
     }
 
-    public static User findUserWithUserId(final String uid) {
-        final User user = new User();
+    public static User findUserByUserId(final String uid) {
+        final User[] user = {new User()};
 
         FirebaseUtils
                 .getUsersRef()
@@ -37,14 +37,42 @@ public class FirebaseUtils {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.getChildrenCount() == 0) {
-                            Log.v(TAG, "User with UID " + uid + " does not exist");
+                            user[0] = null;
                         } else if (dataSnapshot.getChildrenCount() > 1) {
-                            Log.v(TAG, "User with UID " + uid + " has multiple entries");
+                            Log.v(TAG, "User with UID " + uid + " has multiple instances");
                         } else {
                             for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                snapshot.getValue(User.class);
+                                user[0] = snapshot.getValue(User.class);
                             }
+                        }
+                    }
 
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+
+        return user[0];
+    }
+
+    public static DatabaseReference findUserRefByUserId(final String uid) {
+        final DatabaseReference[] userRef = {null};
+
+        FirebaseUtils
+                .getUsersRef()
+                .orderByChild("userId")
+                .equalTo(uid)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.getChildrenCount() == 0) {
+                            userRef[0] = null;
+                        } else if (dataSnapshot.getChildrenCount() > 1) {
+                            Log.v(TAG, "User with UID " + uid + " has multiple instances");
+                        } else {
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                userRef[0] = snapshot.getRef();
+                            }
                         }
                     }
 
@@ -54,7 +82,7 @@ public class FirebaseUtils {
                     }
                 });
 
-        return user;
+        return userRef[0];
     }
 
 }

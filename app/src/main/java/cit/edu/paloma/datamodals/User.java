@@ -1,6 +1,8 @@
 package cit.edu.paloma.datamodals;
 
+import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
@@ -14,12 +16,11 @@ import java.util.Objects;
 
 @IgnoreExtraProperties
 public class User {
-    private int userId;
+    private String userId;
     private String email;
     private String fullName;
     private String avatar;
     private boolean isOnline;
-    private boolean isMale;
 
     @Exclude
     public HashMap<String, Object> toMap() {
@@ -29,35 +30,58 @@ public class User {
         map.put("fullName", fullName);
         map.put("avatar", avatar);
         map.put("isOnline", isOnline);
-        map.put("isMale", isMale);
         return map;
     }
 
-    public User(String email, String fullName, String avatar, boolean isOnline, boolean isMale) {
-        this.email = email;
-        this.fullName = fullName;
-        this.avatar = avatar;
-        this.isOnline = isOnline;
-        this.isMale = isMale;
+    @Exclude
+    public void copyFrom(User value) {
+        this.userId = value.userId;
+        this.email = value.email;
+        this.fullName = value.fullName;
+        this.avatar = value.avatar;
+        this.isOnline = value.isOnline;
     }
 
-    public User(int userId, String email, String fullName, String avatar, boolean isOnline, boolean isMale) {
-        this.userId = userId;
-        this.email = email;
-        this.fullName = fullName;
-        this.avatar = avatar;
-        this.isOnline = isOnline;
-        this.isMale = isMale;
+    @Exclude
+    public static User fromBundle(Bundle bundle) {
+        return new User(
+                bundle.getString("userId"),
+                bundle.getString("email"),
+                bundle.getString("fullName"),
+                bundle.getString("avatar"),
+                bundle.getBoolean("isOnline")
+        );
+    }
+
+    @Exclude
+    public Bundle toBundle() {
+        Bundle bundle = new Bundle();
+
+        bundle.putString("userId", userId);
+        bundle.putString("email", email);
+        bundle.putString("fullName", fullName);
+        bundle.putString("avatar", avatar);
+        bundle.putBoolean("isOnline", isOnline);
+
+        return bundle;
     }
 
     public User() {
     }
 
-    public int getUserId() {
+    public User(String userId, String email, String fullName, String avatar, boolean isOnline) {
+        this.userId = userId;
+        this.email = email;
+        this.fullName = fullName;
+        this.avatar = avatar;
+        this.isOnline = isOnline;
+    }
+
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
@@ -91,13 +115,5 @@ public class User {
 
     public void setOnline(boolean online) {
         isOnline = online;
-    }
-
-    public boolean isMale() {
-        return isMale;
-    }
-
-    public void setMale(boolean male) {
-        isMale = male;
     }
 }
