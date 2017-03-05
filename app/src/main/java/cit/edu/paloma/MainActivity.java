@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,6 +15,9 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -25,6 +29,7 @@ import com.squareup.picasso.Picasso;
 import cit.edu.paloma.adapters.FriendListAdapter;
 import cit.edu.paloma.datamodals.User;
 import cit.edu.paloma.utils.FirebaseUtils;
+import cit.edu.paloma.utils.GoogleSignInUtils;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final int CREATE_NEW_USER_WITH_INFO_RC = 0;
@@ -80,7 +85,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_main_logout:
-                FirebaseAuth.getInstance().signOut();
+                GoogleSignInUtils.signOut();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
