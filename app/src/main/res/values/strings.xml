@@ -18,4 +18,7 @@
     <string name="female">Female</string>
     <string name="gender">Gender</string>
     <string name="save_user_profile">save user profile</string>
+    <string name="search_more_friends">Search more friends</string>
+    <string name="user_settings">User settings</string>
+    <string name="logout">Logout</string>
 </resources>

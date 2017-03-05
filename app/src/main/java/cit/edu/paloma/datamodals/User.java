@@ -20,61 +20,19 @@ public class User {
     private String email;
     private String fullName;
     private String avatar;
+    private String recentMessage;
     private boolean isOnline;
 
-    @Exclude
-    public HashMap<String, Object> toMap() {
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("userId", userId);
-        map.put("email", email);
-        map.put("fullName", fullName);
-        map.put("avatar", avatar);
-        map.put("isOnline", isOnline);
-        return map;
-    }
-
-    @Exclude
-    public void copyFrom(User value) {
-        this.userId = value.userId;
-        this.email = value.email;
-        this.fullName = value.fullName;
-        this.avatar = value.avatar;
-        this.isOnline = value.isOnline;
-    }
-
-    @Exclude
-    public static User fromBundle(Bundle bundle) {
-        return new User(
-                bundle.getString("userId"),
-                bundle.getString("email"),
-                bundle.getString("fullName"),
-                bundle.getString("avatar"),
-                bundle.getBoolean("isOnline")
-        );
-    }
-
-    @Exclude
-    public Bundle toBundle() {
-        Bundle bundle = new Bundle();
-
-        bundle.putString("userId", userId);
-        bundle.putString("email", email);
-        bundle.putString("fullName", fullName);
-        bundle.putString("avatar", avatar);
-        bundle.putBoolean("isOnline", isOnline);
-
-        return bundle;
-    }
-
-    public User() {
-    }
-
-    public User(String userId, String email, String fullName, String avatar, boolean isOnline) {
+    public User(String userId, String email, String fullName, String avatar, String recentMessage, boolean isOnline) {
         this.userId = userId;
         this.email = email;
         this.fullName = fullName;
         this.avatar = avatar;
+        this.recentMessage = recentMessage;
         this.isOnline = isOnline;
+    }
+
+    public User() {
     }
 
     public String getUserId() {
@@ -107,6 +65,14 @@ public class User {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public String getRecentMessage() {
+        return recentMessage;
+    }
+
+    public void setRecentMessage(String recentMessage) {
+        this.recentMessage = recentMessage;
     }
 
     public boolean isOnline() {

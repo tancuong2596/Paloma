@@ -68,10 +68,11 @@ public class FirebaseUtils {
                         if (dataSnapshot.getChildrenCount() == 0) {
                             userRef[0] = null;
                         } else if (dataSnapshot.getChildrenCount() > 1) {
-                            Log.v(TAG, "User with UID " + uid + " has multiple instances");
+                            Log.v(TAG, "In callback: User with UID " + uid + " has multiple instances " + dataSnapshot.getChildrenCount());
                         } else {
                             for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                 userRef[0] = snapshot.getRef();
+                                Log.v(TAG, userRef[0] == null ? "null" : userRef[0].toString());
                             }
                         }
                     }
@@ -82,7 +83,10 @@ public class FirebaseUtils {
                     }
                 });
 
+        Log.v(TAG, "out of callback: " + (userRef[0] == null ? "null" : userRef[0].toString()));
         return userRef[0];
+
+
     }
 
 }
