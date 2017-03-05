@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView mUserFullnameTextAction;
     private TextView mEmailTextAction;
     private ImageView mSearchBoxImageAction;
-    private EditText mSearchBoxEditAction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +67,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mSearchBoxImageAction = (ImageView) findViewById(R.id.ac_search_image);
         mSearchBoxImageAction.setOnClickListener(this);
 
-        mSearchBoxEditAction = (EditText) findViewById(R.id.ac_search_box);
-
         setupAuthStateListener();
     }
 
@@ -87,10 +84,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    private void toggleSearchBox() {
-        // TODO: implement this
     }
 
     private void showUserInfo() {
@@ -175,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.ac_search_image:
-                toggleSearchBox();
+                // TODO: start activity find friends
                 break;
         }
     }
