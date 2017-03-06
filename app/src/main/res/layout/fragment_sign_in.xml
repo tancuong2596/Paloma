@@ -66,7 +66,8 @@
             android:drawableLeft="@drawable/ic_gplus"
             android:background="@drawable/google_plus_button"
             android:text="@string/log_in_with_google"
-            style="@style/sign_in_button" />
+            style="@style/sign_in_button"
+            app:layout_constraintVertical_bias="0.35000002" />
 
 
 

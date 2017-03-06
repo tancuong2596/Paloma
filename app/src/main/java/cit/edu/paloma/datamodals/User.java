@@ -1,14 +1,10 @@
 package cit.edu.paloma.datamodals;
 
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
-
-import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by charlie on 2/27/17.
@@ -22,14 +18,17 @@ public class User {
     private String avatar;
     private String recentMessage;
     private boolean isOnline;
+    private List<Object> friends;
 
-    public User(String userId, String email, String fullName, String avatar, String recentMessage, boolean isOnline) {
+    public User(String userId, String email, String fullName, String avatar, String recentMessage,
+                boolean isOnline, List<Object> friends) {
         this.userId = userId;
         this.email = email;
         this.fullName = fullName;
         this.avatar = avatar;
         this.recentMessage = recentMessage;
         this.isOnline = isOnline;
+        this.friends = friends;
     }
 
     public User() {
@@ -81,5 +80,13 @@ public class User {
 
     public void setOnline(boolean online) {
         isOnline = online;
+    }
+
+    public List<Object> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(List<Object> friends) {
+        this.friends = friends;
     }
 }

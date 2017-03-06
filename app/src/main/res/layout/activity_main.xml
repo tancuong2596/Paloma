@@ -18,8 +18,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
-
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:visibility="gone">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
@@ -30,13 +30,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                app:layout_constraintGuide_percent="0.55" />
+                app:layout_constraintGuide_percent="0.55"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_editor_absoluteY="54dp" />
 
 
             <ImageView
                 android:id="@+id/ac_avatar_image"
-                android:layout_width="@dimen/action_bar_height"
-                android:layout_height="@dimen/action_bar_height"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
                 android:padding="4dp"
                 android:src="@drawable/ic_placeholder"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -49,7 +51,7 @@
                 android:layout_height="0dp"
                 android:background="@android:color/transparent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toRightOf="@id/ac_avatar_image"
+                app:layout_constraintLeft_toRightOf="@+id/ac_avatar_image"
                 app:layout_constraintTop_toTopOf="parent" />
 
 
@@ -60,8 +62,8 @@
                 android:textColor="@color/colorAccent"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@id/ac_center_guide"
-                app:layout_constraintLeft_toRightOf="@id/view_transparent_sep"
+                app:layout_constraintBottom_toTopOf="@+id/ac_center_guide"
+                app:layout_constraintLeft_toRightOf="@+id/view_transparent_sep"
                 tools:text="John Doe" />
 
             <TextView
@@ -70,30 +72,45 @@
                 android:layout_height="wrap_content"
                 android:textColor="#d3d4fd"
                 android:textSize="12sp"
-                app:layout_constraintLeft_toRightOf="@id/view_transparent_sep"
-                app:layout_constraintTop_toBottomOf="@id/ac_center_guide"
+                app:layout_constraintLeft_toRightOf="@+id/view_transparent_sep"
+                app:layout_constraintTop_toTopOf="@+id/ac_center_guide"
                 tools:text="doe@mail.com" />
 
             <ImageView
                 android:id="@+id/ac_search_image"
-                android:layout_width="@dimen/action_bar_height"
-                android:layout_height="@dimen/action_bar_height"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
                 android:padding="8dp"
                 android:src="@drawable/ic_action_search"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"   />
+                app:layout_constraintTop_toTopOf="parent" />
 
         </android.support.constraint.ConstraintLayout>
     </android.support.v7.widget.Toolbar>
 
-    <ListView
-        android:id="@+id/friends_list"
+    <FrameLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/main_toolbar">
+
+        <fragment
+            android:name="cit.edu.paloma.ChatFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_chat"
+            android:id="@+id/chat_fragment" />
+
+        <fragment
+            android:name="cit.edu.paloma.SignInFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_sign_in"
+            android:id="@+id/sign_in_fragment" />
+
+    </FrameLayout>
 
 </android.support.constraint.ConstraintLayout>
