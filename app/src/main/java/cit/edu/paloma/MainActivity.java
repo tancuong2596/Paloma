@@ -1,11 +1,15 @@
 package cit.edu.paloma;
 
+import android.content.res.Resources;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -50,8 +54,6 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        signOut(); // todo: for debugging
-
         setContentView(R.layout.activity_main);
         initViews();
         setupAuthStateListener();
@@ -73,6 +75,27 @@ public class MainActivity extends AppCompatActivity
 
     public GoogleApiClient getGoogleApiClient() {
         return mGoogleApiClient;
+    }
+
+    public void navigateTo(int fragmentId) throws Resources.NotFoundException {
+        switch (fragmentId) {
+            case R.layout.fragment_chat:
+                mToolbar.setVisibility(View.VISIBLE);
+                mFragmentManager
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, new ChatFragment())
+                        .commit();
+                break;
+            case R.layout.fragment_sign_in:
+                mToolbar.setVisibility(View.GONE);
+                mFragmentManager
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, new SignInFragment())
+                        .commit();
+                break;
+            default:
+                throw new Resources.NotFoundException("Fragment with id " + fragmentId + " does not exist");
+        }
     }
 
     private void initViews() {
@@ -98,9 +121,25 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_main_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_main_logout:
+                signOut();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
 
     private void showUserInfo() {
-        mToolbar.setVisibility(View.VISIBLE);
         mUserFullnameTextAction.setText(mCurrentUser.getDisplayName());
         mEmailTextAction.setText(mCurrentUser.getEmail());
         Picasso
@@ -116,20 +155,12 @@ public class MainActivity extends AppCompatActivity
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 final FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user == null) {
-                    mToolbar.setVisibility(View.GONE);
-                    mFragmentManager
-                            .beginTransaction()
-                            .replace(R.id.fragment_container, new SignInFragment())
-                            .commit();
+                    navigateTo(R.layout.fragment_sign_in);
                 } else {
                     Log.v(TAG, user.toString());
                     mCurrentUser = user;
 
-                    mFragmentManager
-                            .beginTransaction()
-                            .replace(R.id.fragment_container, new ChatFragment())
-                            .commit();
-
+                    navigateTo(R.layout.fragment_chat);
                     showUserInfo();
 
                     mCurrentUserValueChanged = new ValueEventListener() {
@@ -183,7 +214,7 @@ public class MainActivity extends AppCompatActivity
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.ac_search_image:
-                // TODO: start fragment find friends
+                navigateTo(R.layout.fragment_find_friends);
                 break;
         }
     }
