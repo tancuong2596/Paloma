@@ -1,13 +1,11 @@
 package cit.edu.paloma;
 
-import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -30,8 +28,8 @@ import cit.edu.paloma.datamodals.User;
 import cit.edu.paloma.utils.FirebaseUtils;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SignInFragment.UserSignInSuccessful {
-    public static final int CREATE_NEW_USER_WITH_INFO_RC = 0;
+        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SignInFragment.UserSignInSuccessful, ChatFragment.UserSignOut {
+
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private FirebaseAuth mFirebaseAuth;
@@ -46,10 +44,14 @@ public class MainActivity extends AppCompatActivity
     private ImageView mSearchBoxImageAction;
     private GoogleSignInOptions mGoogleSignInOptions;
     private GoogleApiClient mGoogleApiClient;
+    private FragmentManager mFragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        signOut(); // todo: for debugging
+
         setContentView(R.layout.activity_main);
         initViews();
         setupAuthStateListener();
@@ -87,6 +89,8 @@ public class MainActivity extends AppCompatActivity
 
         mSearchBoxImageAction = (ImageView) findViewById(R.id.ac_search_image);
         mSearchBoxImageAction.setOnClickListener(this);
+
+        mFragmentManager = getSupportFragmentManager();
     }
 
     @Override
@@ -94,27 +98,9 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_main_logout:
-                if (mGoogleApiClient.isConnected()) {
-                    Auth.GoogleSignInApi.signOut(mGoogleApiClient);
-                }
-                mFirebaseAuth.signOut();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 
     private void showUserInfo() {
+        mToolbar.setVisibility(View.VISIBLE);
         mUserFullnameTextAction.setText(mCurrentUser.getDisplayName());
         mEmailTextAction.setText(mCurrentUser.getEmail());
         Picasso
@@ -130,10 +116,19 @@ public class MainActivity extends AppCompatActivity
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 final FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user == null) {
-                    startActivity(new Intent(MainActivity.this, SignInFragment.class));
-                    finish();
+                    mToolbar.setVisibility(View.GONE);
+                    mFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, new SignInFragment())
+                            .commit();
                 } else {
+                    Log.v(TAG, user.toString());
                     mCurrentUser = user;
+
+                    mFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, new ChatFragment())
+                            .commit();
 
                     showUserInfo();
 
@@ -179,15 +174,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void startActivityForResult(Intent intent, int requestCode) {
-        super.startActivityForResult(intent, requestCode);
-        switch (requestCode) {
-            case CREATE_NEW_USER_WITH_INFO_RC:
-                break;
-        }
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
         mFirebaseAuth.removeAuthStateListener(mAuthListener);
@@ -209,6 +195,13 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onUserSignInSuccessful() {
+    }
 
+    @Override
+    public void signOut() {
+        FirebaseAuth.getInstance().signOut();
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            Auth.GoogleSignInApi.signOut(mGoogleApiClient);
+        }
     }
 }
