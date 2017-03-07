@@ -21,4 +21,8 @@
     <string name="search_more_friends">Search more friends</string>
     <string name="user_settings">User settings</string>
     <string name="logout">Logout</string>
+    <string name="enter_friend_email_here">Enter friend email here</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

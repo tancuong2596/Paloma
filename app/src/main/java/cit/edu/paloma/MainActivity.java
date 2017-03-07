@@ -8,9 +8,9 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -32,7 +32,7 @@ import cit.edu.paloma.datamodals.User;
 import cit.edu.paloma.utils.FirebaseUtils;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SignInFragment.UserSignInSuccessful, ChatFragment.UserSignOut {
+        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SignInFragment.UserSignInSuccessful {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity
     private TextView mUserFullnameTextAction;
     private TextView mEmailTextAction;
     private ImageView mSearchBoxImageAction;
+    private EditText mFriendEmailEditAction;
     private GoogleSignInOptions mGoogleSignInOptions;
     private GoogleApiClient mGoogleApiClient;
     private FragmentManager mFragmentManager;
@@ -53,9 +54,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
+
         initViews();
+
         setupAuthStateListener();
 
         mGoogleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -80,7 +82,15 @@ public class MainActivity extends AppCompatActivity
     public void navigateTo(int fragmentId) throws Resources.NotFoundException {
         switch (fragmentId) {
             case R.layout.fragment_chat:
+                mFriendEmailEditAction.setVisibility(View.GONE);
+
+                mAvatarImageAction.setVisibility(View.VISIBLE);
+                mUserFullnameTextAction.setVisibility(View.VISIBLE);
+                mEmailTextAction.setVisibility(View.VISIBLE);
+                mSearchBoxImageAction.setVisibility(View.VISIBLE);
+
                 mToolbar.setVisibility(View.VISIBLE);
+
                 mFragmentManager
                         .beginTransaction()
                         .replace(R.id.fragment_container, new ChatFragment())
@@ -88,9 +98,23 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.layout.fragment_sign_in:
                 mToolbar.setVisibility(View.GONE);
+
                 mFragmentManager
                         .beginTransaction()
                         .replace(R.id.fragment_container, new SignInFragment())
+                        .commit();
+                break;
+            case R.layout.fragment_find_friends:
+                mFriendEmailEditAction.setVisibility(View.VISIBLE);
+
+                mAvatarImageAction.setVisibility(View.GONE);
+                mUserFullnameTextAction.setVisibility(View.GONE);
+                mEmailTextAction.setVisibility(View.GONE);
+                mSearchBoxImageAction.setVisibility(View.GONE);
+
+                mFragmentManager
+                        .beginTransaction()
+                        .add(R.id.fragment_container, new FindFriendsFragment())
                         .commit();
                 break;
             default:
@@ -112,6 +136,8 @@ public class MainActivity extends AppCompatActivity
 
         mSearchBoxImageAction = (ImageView) findViewById(R.id.ac_search_image);
         mSearchBoxImageAction.setOnClickListener(this);
+
+        mFriendEmailEditAction = (EditText) findViewById(R.id.ac_friend_email_edit);
 
         mFragmentManager = getSupportFragmentManager();
     }
@@ -228,11 +254,11 @@ public class MainActivity extends AppCompatActivity
     public void onUserSignInSuccessful() {
     }
 
-    @Override
     public void signOut() {
         FirebaseAuth.getInstance().signOut();
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             Auth.GoogleSignInApi.signOut(mGoogleApiClient);
         }
+        mCurrentUser = null;
     }
 }
