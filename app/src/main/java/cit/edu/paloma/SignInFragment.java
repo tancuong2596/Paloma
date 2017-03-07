@@ -131,7 +131,6 @@ public class SignInFragment
         FirebaseUser user = mFirebaseAuth.getCurrentUser();
         if (user != null) {
             Log.v(TAG, user.getDisplayName());
-            ((UserSignInSuccessful) getActivity()).onUserSignInSuccessful();
         } else {
             Log.v(TAG, "user is null");
         }
