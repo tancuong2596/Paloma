@@ -90,27 +90,12 @@
     </android.support.v7.widget.Toolbar>
 
     <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/main_toolbar">
-
-        <fragment
-            android:name="cit.edu.paloma.ChatFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:layout="@layout/fragment_chat"
-            android:id="@+id/chat_fragment" />
-
-        <fragment
-            android:name="cit.edu.paloma.SignInFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:layout="@layout/fragment_sign_in"
-            android:id="@+id/sign_in_fragment" />
-
-    </FrameLayout>
+        app:layout_constraintTop_toBottomOf="@id/main_toolbar"/>
 
 </android.support.constraint.ConstraintLayout>
