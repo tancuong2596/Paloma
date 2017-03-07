@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity
     private GoogleSignInOptions mGoogleSignInOptions;
     private GoogleApiClient mGoogleApiClient;
     private FragmentManager mFragmentManager;
+    private ImageView mBackImageAction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +84,7 @@ public class MainActivity extends AppCompatActivity
         switch (fragmentId) {
             case R.layout.fragment_chat:
                 mFriendEmailEditAction.setVisibility(View.GONE);
+                mBackImageAction.setVisibility(View.GONE);
 
                 mAvatarImageAction.setVisibility(View.VISIBLE);
                 mUserFullnameTextAction.setVisibility(View.VISIBLE);
@@ -106,6 +108,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.layout.fragment_find_friends:
                 mFriendEmailEditAction.setVisibility(View.VISIBLE);
+                mBackImageAction.setVisibility(View.VISIBLE);
 
                 mAvatarImageAction.setVisibility(View.GONE);
                 mUserFullnameTextAction.setVisibility(View.GONE);
@@ -136,6 +139,9 @@ public class MainActivity extends AppCompatActivity
 
         mSearchBoxImageAction = (ImageView) findViewById(R.id.ac_search_image);
         mSearchBoxImageAction.setOnClickListener(this);
+
+        mBackImageAction = (ImageView) findViewById(R.id.ac_back_image);
+        mBackImageAction.setOnClickListener(this);
 
         mFriendEmailEditAction = (EditText) findViewById(R.id.ac_friend_email_edit);
 
@@ -241,6 +247,9 @@ public class MainActivity extends AppCompatActivity
         switch (view.getId()) {
             case R.id.ac_search_image:
                 navigateTo(R.layout.fragment_find_friends);
+                break;
+            case R.id.ac_back_image:
+                mFragmentManager.popBackStack();
                 break;
         }
     }
