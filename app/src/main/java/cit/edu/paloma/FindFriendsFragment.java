@@ -27,10 +27,6 @@ public class FindFriendsFragment extends Fragment {
         return rootView;
     }
 
-    public void addSuggestedFriend(User friend) {
-        
-    }
-
     private void initViews() {
         mAdapter = new FriendListAdapter(getContext());
 
