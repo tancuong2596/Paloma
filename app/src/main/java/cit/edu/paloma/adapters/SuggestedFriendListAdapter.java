@@ -12,6 +12,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.ArrayList;
 
 import cit.edu.paloma.R;
@@ -31,21 +33,24 @@ public class SuggestedFriendListAdapter extends ArrayAdapter<User> {
     public View getView(final int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.friend_item, parent);
+            convertView = inflater.inflate(R.layout.suggested_friend_item, parent, false);
         }
 
         final User friend = getItem(position);
 
-        ImageView avatarText = (ImageView) convertView.findViewById(R.id.sfi_avatar_image);
+        ImageView avatarImage = (ImageView) convertView.findViewById(R.id.sfi_avatar_image);
         TextView friendNameText = (TextView) convertView.findViewById(R.id.sfi_friend_name_text);
         View onlineIndicatorView = convertView.findViewById(R.id.sfi_online_indicator_view);
         TextView emailText = (TextView) convertView.findViewById(R.id.sfi_friend_email_text);
         Button addFriendButton = (Button) convertView.findViewById(R.id.sfi_add_friend_button);
 
         try {
-            avatarText.setImageURI(Uri.parse(friend.getAvatar()));
+            Picasso
+                    .with(getContext())
+                    .load(friend.getAvatar())
+                    .into(avatarImage);
         } catch (NullPointerException e) {
-            avatarText.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.user_placeholder));
+            avatarImage.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.user_placeholder));
         }
 
         onlineIndicatorView.setBackground(friend.isOnline() ?

@@ -2,11 +2,15 @@ package cit.edu.paloma;
 
 import android.content.res.Resources;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,15 +30,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.Collections;
 
+import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
 import cit.edu.paloma.datamodals.User;
 import cit.edu.paloma.utils.FirebaseUtils;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SignInFragment.UserSignInSuccessful {
+        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SignInFragment.UserSignInSuccessful, SuggestedFriendListAdapter.AddFriendListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String FRAGMENT_FIND_FRIENDS = "FRAGMENT_FIND_FRIENDS";
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -80,23 +87,32 @@ public class MainActivity extends AppCompatActivity
         return mGoogleApiClient;
     }
 
+    private void showSearchBox(boolean yes) {
+        int searchVisibility = yes ? View.VISIBLE : View.GONE;
+        int informationVisibility = yes ? View.GONE : View.VISIBLE;
+
+        mFriendEmailEditAction.setVisibility(searchVisibility);
+        mBackImageAction.setVisibility(searchVisibility);
+
+        mAvatarImageAction.setVisibility(informationVisibility);
+        mUserFullnameTextAction.setVisibility(informationVisibility);
+        mEmailTextAction.setVisibility(informationVisibility);
+        //mSearchBoxImageAction.setVisibility(informationVisibility);
+
+        mToolbar.setVisibility(View.VISIBLE);
+    }
+
     public void navigateTo(int fragmentId) throws Resources.NotFoundException {
         switch (fragmentId) {
             case R.layout.fragment_chat:
-                mFriendEmailEditAction.setVisibility(View.GONE);
-                mBackImageAction.setVisibility(View.GONE);
 
-                mAvatarImageAction.setVisibility(View.VISIBLE);
-                mUserFullnameTextAction.setVisibility(View.VISIBLE);
-                mEmailTextAction.setVisibility(View.VISIBLE);
-                mSearchBoxImageAction.setVisibility(View.VISIBLE);
-
-                mToolbar.setVisibility(View.VISIBLE);
+                showSearchBox(false);
 
                 mFragmentManager
                         .beginTransaction()
                         .replace(R.id.fragment_container, new ChatFragment())
                         .commit();
+
                 break;
             case R.layout.fragment_sign_in:
                 mToolbar.setVisibility(View.GONE);
@@ -107,18 +123,15 @@ public class MainActivity extends AppCompatActivity
                         .commit();
                 break;
             case R.layout.fragment_find_friends:
-                mFriendEmailEditAction.setVisibility(View.VISIBLE);
-                mBackImageAction.setVisibility(View.VISIBLE);
 
-                mAvatarImageAction.setVisibility(View.GONE);
-                mUserFullnameTextAction.setVisibility(View.GONE);
-                mEmailTextAction.setVisibility(View.GONE);
-                mSearchBoxImageAction.setVisibility(View.GONE);
+                showSearchBox(true);
 
                 mFragmentManager
                         .beginTransaction()
-                        .add(R.id.fragment_container, new FindFriendsFragment())
+                        .add(R.id.fragment_container, new FindFriendsFragment(), FRAGMENT_FIND_FRIENDS)
+                        .addToBackStack(null)
                         .commit();
+
                 break;
             default:
                 throw new Resources.NotFoundException("Fragment with id " + fragmentId + " does not exist");
@@ -144,6 +157,19 @@ public class MainActivity extends AppCompatActivity
         mBackImageAction.setOnClickListener(this);
 
         mFriendEmailEditAction = (EditText) findViewById(R.id.ac_friend_email_edit);
+        mFriendEmailEditAction.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
 
         mFragmentManager = getSupportFragmentManager();
     }
@@ -172,6 +198,7 @@ public class MainActivity extends AppCompatActivity
 
 
     private void showUserInfo() {
+        showSearchBox(false);
         mUserFullnameTextAction.setText(mCurrentUser.getDisplayName());
         mEmailTextAction.setText(mCurrentUser.getEmail());
         Picasso
@@ -246,9 +273,52 @@ public class MainActivity extends AppCompatActivity
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.ac_search_image:
-                navigateTo(R.layout.fragment_find_friends);
+                if (mFriendEmailEditAction.getVisibility() == View.VISIBLE) {
+
+                    final FindFriendsFragment fragment = (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+
+                    fragment.showProgressBar(true);
+                    mSearchBoxImageAction.setEnabled(false);
+
+                    FirebaseUtils
+                            .getUsersRef()
+                            .orderByChild("email")
+                            .addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    if (mCurrentUser == null) {
+                                        return;
+                                    }
+
+                                    FindFriendsFragment findFriendsFragment =
+                                            (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+                                    ArrayList<User> users = new ArrayList<>();
+                                    String keyword = mFriendEmailEditAction.getText().toString();
+                                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                        User user = snapshot.getValue(User.class);
+                                        String email = user.getEmail().toLowerCase();
+                                        if (email.startsWith(keyword) && !email.equalsIgnoreCase(mCurrentUser.getEmail())) {
+                                            users.add(user);
+                                        }
+                                    }
+                                    findFriendsFragment.setListOfUsers(users);
+
+                                    fragment.showProgressBar(false);
+                                    mSearchBoxImageAction.setEnabled(true);
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
+                } else {
+                    navigateTo(R.layout.fragment_find_friends);
+                }
                 break;
             case R.id.ac_back_image:
+                showSearchBox(false);
                 mFragmentManager.popBackStack();
                 break;
         }
@@ -264,10 +334,35 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void signOut() {
+        showSearchBox(true);
+
+        FirebaseUtils
+                .getUsersRef()
+                .orderByChild("userId")
+                .equalTo(mCurrentUser.getUid())
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            snapshot.getRef().child("online").setValue(Boolean.FALSE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
         FirebaseAuth.getInstance().signOut();
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             Auth.GoogleSignInApi.signOut(mGoogleApiClient);
         }
         mCurrentUser = null;
+    }
+
+    @Override
+    public void onAddFriend(int index, User user) {
+        // todo: implement onAddFriend
     }
 }
