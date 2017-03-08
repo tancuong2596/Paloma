@@ -18,10 +18,12 @@ public class User {
     private String avatar;
     private String recentMessage;
     private boolean isOnline;
-    private List<Object> friends;
+    private Map<String, Object> friends;
 
-    public User(String userId, String email, String fullName, String avatar, String recentMessage,
-                boolean isOnline, List<Object> friends) {
+    public User() {
+    }
+
+    public User(String userId, String email, String fullName, String avatar, String recentMessage, boolean isOnline, Map<String, Object> friends) {
         this.userId = userId;
         this.email = email;
         this.fullName = fullName;
@@ -31,8 +33,7 @@ public class User {
         this.friends = friends;
     }
 
-    public User() {
-    }
+
 
     public String getUserId() {
         return userId;
@@ -82,11 +83,12 @@ public class User {
         isOnline = online;
     }
 
-    public List<Object> getFriends() {
+    public Map<String, Object> getFriends() {
         return friends;
     }
 
-    public void setFriends(List<Object> friends) {
+    public void setFriends(Map<String, Object> friends) {
         this.friends = friends;
     }
 }
+
