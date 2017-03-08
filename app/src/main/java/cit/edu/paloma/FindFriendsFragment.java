@@ -3,6 +3,8 @@ package cit.edu.paloma;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.TextViewCompat;
 import android.view.LayoutInflater;
@@ -13,6 +15,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
 import cit.edu.paloma.datamodals.User;
@@ -41,7 +44,11 @@ public class FindFriendsFragment extends Fragment {
         mNoResultText = (TextView) rootView.findViewById(R.id.no_result_text);
     }
 
-    public void setListOfUsers(ArrayList<User> listOfUsers) {
+    public void setListOfUsers(@Nullable ArrayList<User> listOfUsers) {
+        if (listOfUsers == null) {
+            listOfUsers = (ArrayList<User>) Collections.<User>emptyList();
+        }
+
         mAdapter = new SuggestedFriendListAdapter(getContext());
         mAdapter.addAll(listOfUsers);
         mSuggestedFriendsList.setAdapter(mAdapter);
