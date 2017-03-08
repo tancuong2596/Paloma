@@ -24,4 +24,5 @@
     <string name="enter_friend_email_here">Enter friend email here</string>
     <string name="add_friend">add</string>
     <string name="no_results">No results</string>
+    <string name="searching">Searching...</string>
 </resources>

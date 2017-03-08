@@ -26,6 +26,7 @@ public class FindFriendsFragment extends Fragment {
     private ListView mSuggestedFriendsList;
     private SuggestedFriendListAdapter mAdapter;
     private TextView mNoResultText;
+    private TextView mSearchingText;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -42,6 +43,8 @@ public class FindFriendsFragment extends Fragment {
         mSuggestedFriendsList.setAdapter(mAdapter);
 
         mNoResultText = (TextView) rootView.findViewById(R.id.no_result_text);
+
+        mSearchingText = (TextView) rootView.findViewById(R.id.searching_text);
     }
 
     public void setListOfUsers(@Nullable ArrayList<User> listOfUsers) {
@@ -62,6 +65,10 @@ public class FindFriendsFragment extends Fragment {
     }
 
     public void showProgressBar(boolean b) {
-        // todo: show progress bar
+        if (b) {
+            mSearchingText.setVisibility(View.VISIBLE);
+        } else {
+            mSearchingText.setVisibility(View.GONE);
+        }
     }
 }
