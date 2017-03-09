@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,20 +13,24 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.firebase.database.DatabaseReference;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+import cit.edu.paloma.MainActivity;
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.User;
 
-public class SuggestedFriendListAdapter extends ArrayAdapter<User> {
+public class SuggestedFriendListAdapter extends ArrayAdapter<Object[]> {
+    private static final String TAG = SuggestedFriendListAdapter.class.getSimpleName();
+
     public SuggestedFriendListAdapter(Context context) {
-        super(context, 0, new ArrayList<User>());
+        super(context, 0, new ArrayList<Object[]>());
     }
 
     public interface AddFriendListener {
-        public void onAddFriend(int index, User user);
+        void onAddFriend(int index, Object[] params);
     }
 
     @NonNull
@@ -36,7 +41,14 @@ public class SuggestedFriendListAdapter extends ArrayAdapter<User> {
             convertView = inflater.inflate(R.layout.suggested_friend_item, parent, false);
         }
 
-        final User friend = getItem(position);
+        final Object[] params = getItem(position);
+
+        if (params == null) {
+            Log.v(TAG, "Item at " + position + " is null");
+            return convertView;
+        }
+
+        final User friend = (User) params[1];
 
         ImageView avatarImage = (ImageView) convertView.findViewById(R.id.sfi_avatar_image);
         TextView friendNameText = (TextView) convertView.findViewById(R.id.sfi_friend_name_text);
@@ -62,12 +74,19 @@ public class SuggestedFriendListAdapter extends ArrayAdapter<User> {
 
         emailText.setText(friend.getEmail());
 
-        addFriendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((AddFriendListener) getContext()).onAddFriend(position, friend);
-            }
-        });
+        final User currentUser = ((MainActivity) getContext()).getCurrentUser();
+
+        if (currentUser.getFriends().containsKey(friend.getUserId())) {
+            addFriendButton.setEnabled(false);
+            addFriendButton.setText(getContext().getString(R.string.pending));
+        } else {
+            addFriendButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ((AddFriendListener) getContext()).onAddFriend(position, params);
+                }
+            });
+        }
 
         return convertView;
     }
