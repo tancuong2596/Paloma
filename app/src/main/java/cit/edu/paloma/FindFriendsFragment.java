@@ -14,6 +14,8 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.firebase.database.DatabaseReference;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -47,9 +49,9 @@ public class FindFriendsFragment extends Fragment {
         mSearchingText = (TextView) rootView.findViewById(R.id.searching_text);
     }
 
-    public void setListOfUsers(@Nullable ArrayList<User> listOfUsers) {
+    public void setListOfUsers(@Nullable ArrayList<Object[]> listOfUsers) {
         if (listOfUsers == null) {
-            listOfUsers = (ArrayList<User>) Collections.<User>emptyList();
+            listOfUsers = (ArrayList<Object[]>) Collections.<Object[]>emptyList();
         }
 
         mAdapter = new SuggestedFriendListAdapter(getContext());

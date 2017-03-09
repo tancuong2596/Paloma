@@ -25,4 +25,5 @@
     <string name="add_friend">add</string>
     <string name="no_results">No results</string>
     <string name="searching">Searching...</string>
+    <string name="pending">Pending</string>
 </resources>

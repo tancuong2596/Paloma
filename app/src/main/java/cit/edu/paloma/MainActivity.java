@@ -2,15 +2,11 @@ package cit.edu.paloma;
 
 import android.content.res.Resources;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,16 +18,21 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Objects;
 
 import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
 import cit.edu.paloma.datamodals.User;
@@ -45,8 +46,8 @@ public class MainActivity extends AppCompatActivity
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private FirebaseUser mCurrentUser;
-    private DatabaseReference mCurrentUserRef;
+    private FirebaseUser mFirebaseCurrentUser;
+    private DatabaseReference mFirebaseCurrentUserRef;
     private ValueEventListener mCurrentUserValueChanged;
     private Toolbar mToolbar;
     private ImageView mAvatarImageAction;
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient;
     private FragmentManager mFragmentManager;
     private ImageView mBackImageAction;
+    private User mCurrentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +135,7 @@ public class MainActivity extends AppCompatActivity
 
                 break;
             default:
-                throw new Resources.NotFoundException("Fragment with id " + fragmentId + " does not exist");
+                Log.v(TAG, "Fragment with id " + fragmentId + " does not exist");
         }
     }
 
@@ -158,6 +160,10 @@ public class MainActivity extends AppCompatActivity
         mFriendEmailEditAction = (EditText) findViewById(R.id.ac_friend_email_edit);
 
         mFragmentManager = getSupportFragmentManager();
+    }
+
+    public User getCurrentUser() {
+        return mCurrentUser;
     }
 
     @Override
@@ -185,11 +191,11 @@ public class MainActivity extends AppCompatActivity
 
     private void showUserInfo() {
         showSearchBox(false);
-        mUserFullnameTextAction.setText(mCurrentUser.getDisplayName());
-        mEmailTextAction.setText(mCurrentUser.getEmail());
+        mUserFullnameTextAction.setText(mFirebaseCurrentUser.getDisplayName());
+        mEmailTextAction.setText(mFirebaseCurrentUser.getEmail());
         Picasso
                 .with(this)
-                .load(mCurrentUser.getPhotoUrl())
+                .load(mFirebaseCurrentUser.getPhotoUrl())
                 .into(mAvatarImageAction);
     }
 
@@ -203,7 +209,7 @@ public class MainActivity extends AppCompatActivity
                     navigateTo(R.layout.fragment_sign_in);
                 } else {
                     Log.v(TAG, user.toString());
-                    mCurrentUser = user;
+                    mFirebaseCurrentUser = user;
 
                     navigateTo(R.layout.fragment_chat);
                     showUserInfo();
@@ -214,6 +220,8 @@ public class MainActivity extends AppCompatActivity
                             if (dataSnapshot.getChildrenCount() == 1) {
                                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                     snapshot.getRef().child("online").setValue(Boolean.TRUE);
+                                    mCurrentUser = snapshot.getValue(User.class);
+                                    mFirebaseCurrentUserRef = snapshot.getRef();
                                 }
                             } else {
                                 FirebaseUtils
@@ -226,7 +234,8 @@ public class MainActivity extends AppCompatActivity
                                                 user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "",
                                                 "",
                                                 true,
-                                                Collections.emptyList()
+                                                null,
+                                                null
                                         ));
                             }
                         }
@@ -236,6 +245,7 @@ public class MainActivity extends AppCompatActivity
 
                         }
                     };
+
 
                     FirebaseUtils
                             .getUsersRef()
@@ -261,6 +271,10 @@ public class MainActivity extends AppCompatActivity
             case R.id.ac_search_image:
                 if (mFriendEmailEditAction.getVisibility() == View.VISIBLE) {
 
+                    if (mFriendEmailEditAction.getText().toString().trim().isEmpty()) {
+                        return;
+                    }
+
                     final FindFriendsFragment fragment = (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
                     fragment.showProgressBar(true);
@@ -276,16 +290,26 @@ public class MainActivity extends AppCompatActivity
                                             (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
                                     try {
-                                        if (mCurrentUser != null) {
-                                            ArrayList<User> users = new ArrayList<>();
+                                        if (mFirebaseCurrentUser != null) {
+                                            ArrayList<Object[]> users = new ArrayList<>();
                                             String keyword = mFriendEmailEditAction.getText().toString();
+
                                             for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                                 User user = snapshot.getValue(User.class);
                                                 String email = user.getEmail().toLowerCase();
-                                                if (email.contains(keyword) && !email.equalsIgnoreCase(mCurrentUser.getEmail())) {
-                                                    users.add(user);
+
+                                                if (email.contains(keyword)) {
+                                                    if (!email.equalsIgnoreCase(mFirebaseCurrentUser.getEmail())) {
+                                                        String relationshipStatus = (String) mCurrentUser.getFriends().get(user.getUserId());
+
+                                                        if (relationshipStatus == null || relationshipStatus.equalsIgnoreCase("pending")) {
+                                                            users.add(new Object[]{snapshot.getRef(), user});
+                                                        }
+                                                    }
                                                 }
+
                                             }
+
                                             findFriendsFragment.setListOfUsers(users);
                                         } else {
                                             findFriendsFragment.setListOfUsers(null);
@@ -325,11 +349,11 @@ public class MainActivity extends AppCompatActivity
     public void signOut() {
         showSearchBox(true);
 
-        if (mCurrentUser != null) {
+        if (mFirebaseCurrentUser != null) {
             FirebaseUtils
                     .getUsersRef()
                     .orderByChild("userId")
-                    .equalTo(mCurrentUser.getUid())
+                    .equalTo(mFirebaseCurrentUser.getUid())
                     .addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -349,11 +373,34 @@ public class MainActivity extends AppCompatActivity
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             Auth.GoogleSignInApi.signOut(mGoogleApiClient);
         }
-        mCurrentUser = null;
+        mFirebaseCurrentUser = null;
     }
 
     @Override
-    public void onAddFriend(int index, User user) {
-        // todo: implement onAddFriend
+    public void onAddFriend(int index, Object[] params) {
+        try {
+            User invitedUser = (User) params[1];
+            DatabaseReference invitedUserRef = (DatabaseReference) params[0];
+
+            // add pending friend to friends list of current user
+            User currentUser = mCurrentUser.getReplica();
+            currentUser.getFriends().put(invitedUser.getUserId(), "pending");
+
+            HashMap<String, Object> updateChildren = new HashMap<>();
+            updateChildren.put(mFirebaseCurrentUserRef.getKey(), currentUser.topMap());
+
+            FirebaseUtils.getUsersRef().updateChildren(updateChildren);
+
+            // add current user to invites list of pending friend
+            invitedUser.getInvites().put(currentUser.getUserId(), Boolean.TRUE);
+
+            updateChildren.clear();
+            updateChildren.put(invitedUserRef.getKey(), invitedUser.topMap());
+
+            FirebaseUtils.getUsersRef().updateChildren(updateChildren);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
