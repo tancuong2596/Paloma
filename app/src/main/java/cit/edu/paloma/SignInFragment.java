@@ -1,5 +1,6 @@
 package cit.edu.paloma;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -107,22 +108,35 @@ public class SignInFragment
         }
     }
 
+    //
+    private void showFailedMessage(String message) {
+        new AlertDialog.Builder(getContext(), R.style.DialogTheme)
+                .setIcon(R.mipmap.ic_failed)
+                .setTitle("Sign-in failed")
+                .setMessage(message)
+                .setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        ((MainActivity) getActivity()).signOut();
+                    }
+                })
+                .show();
+    }
+
     private void firebaseSignInWithGoogle(GoogleSignInResult result) {
         showWaitingScreen(true);
         if (!result.isSuccess()) {
-            new AlertDialog.Builder(getContext(), R.style.DialogTheme)
-                    .setIcon(R.mipmap.ic_failed)
-                    .setTitle("Sign-in failed")
-                    .setMessage(result.getStatus().getStatusMessage())
-                    .show();
+            showFailedMessage(result.getStatus().getStatusMessage());
         } else {
             GoogleSignInAccount account = result.getSignInAccount();
-
-            AuthCredential cred = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-
-            mFirebaseAuth
-                    .signInWithCredential(cred)
-                    .addOnCompleteListener(getActivity(), mOnCompleteListener);
+            if (account == null) {
+                showFailedMessage("Some problems has occurred");
+            } else {
+                AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+                mFirebaseAuth
+                        .signInWithCredential(credential)
+                        .addOnCompleteListener(getActivity(), mOnCompleteListener);
+            }
         }
     }
 
@@ -131,7 +145,6 @@ public class SignInFragment
         FirebaseUser user = mFirebaseAuth.getCurrentUser();
         if (user != null) {
             Log.v(TAG, user.getDisplayName());
-            ((UserSignInSuccessful) getActivity()).onUserSignInSuccessful();
         } else {
             Log.v(TAG, "user is null");
         }
@@ -145,15 +158,12 @@ public class SignInFragment
                 Exception exception = task.getException();
 
                 String message = "Cannot sign in with your google account";
+
                 if (exception != null) {
                     message = exception.getMessage();
                 }
 
-                new AlertDialog.Builder(getActivity(), R.style.DialogTheme)
-                        .setIcon(R.mipmap.ic_failed)
-                        .setTitle("Sign-in failed")
-                        .setMessage(message)
-                        .show();
+                showFailedMessage(message);
             }
         }
     };

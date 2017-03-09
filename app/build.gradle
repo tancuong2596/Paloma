@@ -25,25 +25,12 @@ android {
 }
 
 dependencies {
-    compile 'com.google.firebase:firebase-auth:10.0.1'
-    compile 'com.google.android.gms:play-services-auth:10.0.1'
 
     // Firebase
-    compile 'com.google.firebase:firebase-database:10.0.0'
-    compile 'com.google.firebase:firebase-auth:10.0.0'
-    compile 'com.google.firebase:firebase-config:10.0.0'
-    compile 'com.google.firebase:firebase-messaging:10.0.0'
-    compile 'com.google.firebase:firebase-appindexing:10.0.0'
-    compile 'com.google.firebase:firebase-crash:10.0.0'
-    compile 'com.google.firebase:firebase-analytics:10.0.0'
-
-    compile 'com.squareup.picasso:picasso:2.5.2'
 
     // Firebase UI
-    compile 'com.firebaseui:firebase-ui-database:0.4.0'
 
     // Facebook API
-    compile 'com.facebook.android:facebook-android-sdk:[4,5)'
 
     // Twitter Android SDK (only required for Twitter Login)
     compile('com.twitter.sdk.android:twitter-core:1.6.6@aar') {
@@ -54,18 +41,30 @@ dependencies {
     }
 
     // OkHttp
-    compile 'com.squareup.okhttp:okhttp:2.5.0'
 
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:25.2.0'
-    testCompile 'junit:junit:4.12'
 
     // Constraint Layout
+    compile 'com.google.firebase:firebase-auth:10.0.1'
+    compile 'com.google.android.gms:play-services-auth:10.0.1'
+    compile 'com.google.firebase:firebase-database:10.0.0'
+    compile 'com.google.firebase:firebase-config:10.0.0'
+    compile 'com.google.firebase:firebase-messaging:10.0.0'
+    compile 'com.google.firebase:firebase-appindexing:10.0.0'
+    compile 'com.google.firebase:firebase-crash:10.0.0'
+    compile 'com.google.firebase:firebase-analytics:10.0.0'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.firebaseui:firebase-ui-database:0.4.0'
+    compile 'com.facebook.android:facebook-android-sdk:[4,5)'
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
+    compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.1'
+    compile 'com.android.support:support-v4:25.2.0'
+    testCompile 'junit:junit:4.12'
 }
 
 apply plugin: 'com.google.gms.google-services'

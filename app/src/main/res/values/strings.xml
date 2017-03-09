@@ -13,7 +13,7 @@
     <string name="log_in_with_facebook">Log in with facebook</string>
     <string name="login_with_twitter">Login with twitter</string>
     <string name="login_with_github">Login with github</string>
-    <string name="please_wait">Please wait...</string>
+    <string name="please_wait">Please wait…</string>
     <string name="male">Male</string>
     <string name="female">Female</string>
     <string name="gender">Gender</string>
@@ -21,4 +21,9 @@
     <string name="search_more_friends">Search more friends</string>
     <string name="user_settings">User settings</string>
     <string name="logout">Logout</string>
+    <string name="enter_friend_email_here">Enter friend email here</string>
+    <string name="add_friend">add</string>
+    <string name="no_results">No results</string>
+    <string name="searching">Searching...</string>
+    <string name="pending">Pending</string>
 </resources>
