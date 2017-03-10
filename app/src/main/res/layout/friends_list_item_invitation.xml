@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    android:baselineAligned="false"
+    android:gravity="center"
+    android:orientation="horizontal">
+
+    <android.support.constraint.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/fii_center_guide"
+        app:layout_constraintGuide_begin="24dp"
+        android:orientation="horizontal" />
+
+    <ImageView
+        android:id="@+id/fii_avatar_image"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginRight="12dp"
+        tools:src="@drawable/twitter_button"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/fii_friend_name_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/black"
+        tools:text="Brad Pitt"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toRightOf="@id/fii_avatar_image"
+        app:layout_constraintBottom_toTopOf="@id/fii_center_guide"/>
+
+    <TextView
+        android:id="@+id/fii_email_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:layout_marginLeft="8dp"
+        tools:text="bradpitt@gmail.com"
+        app:layout_constraintTop_toTopOf="@id/fii_center_guide"
+        app:layout_constraintLeft_toRightOf="@id/fii_avatar_image"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/accept"
+        app:layout_constraintTop_toTopOf="@id/fii_center_guide"
+        app:layout_constraintBottom_toBottomOf="@id/fii_center_guide"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+</android.support.constraint.ConstraintLayout>
