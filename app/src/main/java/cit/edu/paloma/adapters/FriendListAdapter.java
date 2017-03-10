@@ -1,10 +1,7 @@
 package cit.edu.paloma.adapters;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,16 +17,62 @@ import java.util.HashMap;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.User;
-import cit.edu.paloma.fragments.FriendsListFragment;
 
 /**
  * Created by charlie on 3/5/17.
  */
 public class FriendListAdapter extends BaseAdapter {
+    private class FriendListAdapterItem {
+        public static final int FRIEND = 0;
+        public static final int INVITATION = 1;
+        public static final int HEADER = 2;
+
+        User user;
+        int itemType;
+        String text;
+
+        public FriendListAdapterItem() {
+        }
+
+        public FriendListAdapterItem(User user, int itemType) {
+            this.user = user;
+            this.itemType = itemType;
+        }
+
+        public FriendListAdapterItem(String text, int itemType) {
+            this.text = text;
+            this.itemType = itemType;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
+
+        public int getItemType() {
+            return itemType;
+        }
+
+        public void setItemType(int itemType) {
+            this.itemType = itemType;
+        }
+    }
+
     private static final String TAG = FriendListAdapter.class.getSimpleName();
     private ListView mListView;
     private Context mContext;
-    private ArrayList<User> mData;
+    private ArrayList<FriendListAdapterItem> mData;
     private HashMap<String, Integer> mDataMap;
 
 
@@ -40,25 +83,36 @@ public class FriendListAdapter extends BaseAdapter {
         this.mListView = listView;
     }
 
-    public void updateFriends(ArrayList<User> updatedFriends) {
+    public void updateFriends(ArrayList<User> updatedFriends, String headerText) {
         for (User newUser : updatedFriends) {
             Integer oldUserIndex = mDataMap.get(newUser.getUserId());
             if (oldUserIndex == null) {
-                mData.add(newUser);
+                mData.add(new FriendListAdapterItem(newUser, FriendListAdapterItem.FRIEND));
                 mDataMap.put(newUser.getUserId(), mData.size() - 1);
             } else {
-                if (mListView.getFirstVisiblePosition() <= oldUserIndex && oldUserIndex <= mListView.getLastVisiblePosition()) {
+                if (mListView.getFirstVisiblePosition() <= oldUserIndex &&
+                        oldUserIndex <= mListView.getLastVisiblePosition()) {
                     View item = mListView.getChildAt(oldUserIndex - mListView.getFirstVisiblePosition());
-                    updateView(item, newUser);
+                    updateFriend(item, newUser);
                 }
-                mData.set(oldUserIndex, newUser);
+                mData.set(oldUserIndex, new FriendListAdapterItem(newUser, FriendListAdapterItem.FRIEND));
             }
         }
         notifyDataSetChanged();
     }
 
-    private void updateView(View item, User newUser) {
-        // todo: implement
+    private void updateFriend(View item, User friend) {
+        ImageView avatarImage = (ImageView) item.findViewById(R.id.fi_avatar_image);
+        TextView friendNameText = (TextView) item.findViewById(R.id.fi_friend_name_text);
+        TextView recentMessageText = (TextView) item.findViewById(R.id.fi_recent_msg_text);
+
+        Picasso
+                .with(mContext)
+                .load(friend.getAvatar())
+                .into(avatarImage);
+
+        friendNameText.setText(friend.getFullName());
+        recentMessageText.setText(friend.getRecentMessage());
     }
 
     public void updateInvites(ArrayList<User> updatedInvites) {
@@ -71,7 +125,7 @@ public class FriendListAdapter extends BaseAdapter {
     }
 
     @Override
-    public User getItem(int i) {
+    public FriendListAdapterItem getItem(int i) {
         return mData.get(i);
     }
 
@@ -83,30 +137,23 @@ public class FriendListAdapter extends BaseAdapter {
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.friend_item, parent, false);
+        final LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        FriendListAdapterItem item = getItem(position);
+        User friend = item.getUser();
+
+        if (item.getItemType() == FriendListAdapterItem.FRIEND) {
+            if (convertView == null) {
+                convertView = inflater.inflate(R.layout.friends_list_item_user, parent, false);
+            }
+            updateFriend(convertView, friend);
+        } else {
+            if (convertView == null) {
+                convertView = inflater.inflate(R.layout.friends_list_item_invitation, parent, false);
+            }
+            updateInvite(convertView, friend);
         }
-
-        User friend = getItem(position);
-
-        Log.v(TAG, "at position = " + position);
-        Log.v(TAG, friend.toString());
-
-        ImageView avatarImage = (ImageView) convertView.findViewById(R.id.fi_avatar_image);
-        TextView friendNameText = (TextView) convertView.findViewById(R.id.fi_friend_name_text);
-        TextView recentMessageText = (TextView) convertView.findViewById(R.id.fi_recent_msg_text);
-        TextView emailText = (TextView) convertView.findViewById(R.id.fi_friend_email_text);
-
-        Picasso
-                .with(mContext)
-                .load(friend.getAvatar())
-                .into(avatarImage);
-
-        friendNameText.setText(friend.getFullName());
-        recentMessageText.setText(friend.getRecentMessage());
-        emailText.setText("(" + friend.getEmail() + ")");
-
         return convertView;
     }
+
 }
