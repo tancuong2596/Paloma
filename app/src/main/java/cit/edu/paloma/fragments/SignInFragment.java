@@ -1,4 +1,4 @@
-package cit.edu.paloma;
+package cit.edu.paloma.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -26,6 +26,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+
+import cit.edu.paloma.MainActivity;
+import cit.edu.paloma.R;
 
 public class SignInFragment
         extends Fragment

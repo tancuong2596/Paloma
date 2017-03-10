@@ -1,4 +1,4 @@
-package cit.edu.paloma;
+package cit.edu.paloma.fragments;
 
 import android.content.Context;
 import android.net.Uri;
@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseReference;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
 import cit.edu.paloma.datamodals.User;
 

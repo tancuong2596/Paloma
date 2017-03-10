@@ -31,6 +31,9 @@ import java.util.HashMap;
 
 import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
 import cit.edu.paloma.datamodals.User;
+import cit.edu.paloma.fragments.FindFriendsFragment;
+import cit.edu.paloma.fragments.FriendsListFragment;
+import cit.edu.paloma.fragments.SignInFragment;
 import cit.edu.paloma.utils.FirebaseUtils;
 
 public class MainActivity extends AppCompatActivity

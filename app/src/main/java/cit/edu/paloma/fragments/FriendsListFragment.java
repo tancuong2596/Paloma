@@ -1,4 +1,4 @@
-package cit.edu.paloma;
+package cit.edu.paloma.fragments;
 
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import cit.edu.paloma.MainActivity;
+import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.FriendListAdapter;
 
 public class FriendsListFragment extends Fragment {

@@ -6,7 +6,7 @@
     android:id="@+id/activity_chat"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="cit.edu.paloma.FriendsListFragment">
+    tools:context="cit.edu.paloma.fragments.FriendsListFragment">
 
     <ListView
         android:id="@+id/friends_list"

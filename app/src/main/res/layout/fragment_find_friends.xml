@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="cit.edu.paloma.FindFriendsFragment">
+    tools:context="cit.edu.paloma.fragments.FindFriendsFragment">
 
     <ListView
         android:id="@+id/suggested_friends_list"
