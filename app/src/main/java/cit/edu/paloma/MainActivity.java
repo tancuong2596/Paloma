@@ -28,6 +28,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
 import cit.edu.paloma.datamodals.User;
@@ -41,6 +42,10 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String FRAGMENT_FIND_FRIENDS = "FRAGMENT_FIND_FRIENDS";
+    private static final String FRAGMENT_FRIENDS_LIST = "FRAGMENT_FRIENDS_LIST";
+
+    public static final String FRIEND_ACCEPTED = "accepted";
+    public static final String FRIEND_PENDING = "pending";
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -104,12 +109,11 @@ public class MainActivity extends AppCompatActivity
     public void navigateTo(int fragmentId) throws Resources.NotFoundException {
         switch (fragmentId) {
             case R.layout.fragment_friends_list:
-
                 showSearchBox(false);
 
                 mFragmentManager
                         .beginTransaction()
-                        .replace(R.id.fragment_container, new FriendsListFragment())
+                        .replace(R.id.fragment_container, new FriendsListFragment(), FRAGMENT_FRIENDS_LIST)
                         .commit();
 
                 break;
@@ -122,7 +126,6 @@ public class MainActivity extends AppCompatActivity
                         .commit();
                 break;
             case R.layout.fragment_find_friends:
-
                 showSearchBox(true);
 
                 mFragmentManager
@@ -219,6 +222,7 @@ public class MainActivity extends AppCompatActivity
                                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                     snapshot.getRef().child("online").setValue(Boolean.TRUE);
                                     mCurrentUser = snapshot.getValue(User.class);
+                                    updateFriendsList(mCurrentUser.getFriends(), mCurrentUser.getInvites());
                                     mFirebaseCurrentUserRef = snapshot.getRef();
                                 }
                             } else {
@@ -255,6 +259,17 @@ public class MainActivity extends AppCompatActivity
         };
 
         mFirebaseAuth.addAuthStateListener(mAuthListener);
+    }
+
+    private void updateFriendsList(Map<String, Object> friends, Map<String, Object> invites) {
+        FriendsListFragment fragment =
+                (FriendsListFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FRIENDS_LIST);
+
+        if (fragment != null) {
+            fragment.updateFriendsList(friends, invites);
+        } else {
+            Log.v(TAG, "Cannot find " + FRAGMENT_FRIENDS_LIST);
+        }
     }
 
     @Override
