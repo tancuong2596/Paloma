@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -21,15 +22,14 @@ import cit.edu.paloma.datamodals.User;
 /**
  * Created by charlie on 3/5/17.
  */
-public class FriendListAdapter extends BaseAdapter {
+public class FriendListAdapter extends BaseAdapter implements View.OnClickListener {
+
     private class FriendListAdapterItem {
         public static final int FRIEND = 0;
         public static final int INVITATION = 1;
-        public static final int HEADER = 2;
 
         User user;
         int itemType;
-        String text;
 
         public FriendListAdapterItem() {
         }
@@ -37,19 +37,6 @@ public class FriendListAdapter extends BaseAdapter {
         public FriendListAdapterItem(User user, int itemType) {
             this.user = user;
             this.itemType = itemType;
-        }
-
-        public FriendListAdapterItem(String text, int itemType) {
-            this.text = text;
-            this.itemType = itemType;
-        }
-
-        public String getText() {
-            return text;
-        }
-
-        public void setText(String text) {
-            this.text = text;
         }
 
         public User getUser() {
@@ -83,7 +70,7 @@ public class FriendListAdapter extends BaseAdapter {
         this.mListView = listView;
     }
 
-    public void updateFriends(ArrayList<User> updatedFriends, String headerText) {
+    public void updateFriends(ArrayList<User> updatedFriends) {
         for (User newUser : updatedFriends) {
             Integer oldUserIndex = mDataMap.get(newUser.getUserId());
             if (oldUserIndex == null) {
@@ -101,7 +88,7 @@ public class FriendListAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    private void updateFriend(View item, User friend) {
+    private View updateFriend(View item, User friend) {
         ImageView avatarImage = (ImageView) item.findViewById(R.id.fi_avatar_image);
         TextView friendNameText = (TextView) item.findViewById(R.id.fi_friend_name_text);
         TextView recentMessageText = (TextView) item.findViewById(R.id.fi_recent_msg_text);
@@ -113,10 +100,53 @@ public class FriendListAdapter extends BaseAdapter {
 
         friendNameText.setText(friend.getFullName());
         recentMessageText.setText(friend.getRecentMessage());
+
+        return item;
+    }
+
+    private View updateInvite(View item, User friend) {
+        ImageView avatarImage = (ImageView) item.findViewById(R.id.fii_avatar_image);
+        TextView friendNameText = (TextView) item.findViewById(R.id.fii_friend_name_text);
+        TextView emailText = (TextView) item.findViewById(R.id.fii_email_text);
+        Button acceptButton = (Button) item.findViewById(R.id.fii_accept_button);
+
+        Picasso
+                .with(mContext)
+                .load(friend.getAvatar())
+                .into(avatarImage);
+
+        friendNameText.setText(friend.getFullName());
+        emailText.setText(friend.getEmail());
+        acceptButton.setOnClickListener(this);
+
+        return item;
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.fii_accept_button:
+
+                break;
+        }
     }
 
     public void updateInvites(ArrayList<User> updatedInvites) {
-        // todo: implement
+        for (User newUser : updatedInvites) {
+            Integer oldUserIndex = mDataMap.get(newUser.getUserId());
+            if (oldUserIndex == null) {
+                mData.add(new FriendListAdapterItem(newUser, FriendListAdapterItem.INVITATION));
+                mDataMap.put(newUser.getUserId(), mData.size() - 1);
+            } else {
+                if (mListView.getFirstVisiblePosition() <= oldUserIndex &&
+                        oldUserIndex <= mListView.getLastVisiblePosition()) {
+                    View item = mListView.getChildAt(oldUserIndex - mListView.getFirstVisiblePosition());
+                    updateFriend(item, newUser);
+                }
+                mData.set(oldUserIndex, new FriendListAdapterItem(newUser, FriendListAdapterItem.INVITATION));
+            }
+        }
+        notifyDataSetChanged();
     }
 
     @Override
@@ -146,14 +176,15 @@ public class FriendListAdapter extends BaseAdapter {
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.friends_list_item_user, parent, false);
             }
-            updateFriend(convertView, friend);
+            convertView = updateFriend(convertView, friend);
         } else {
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.friends_list_item_invitation, parent, false);
             }
-            updateInvite(convertView, friend);
+            convertView = updateInvite(convertView, friend);
         }
         return convertView;
     }
+
 
 }
