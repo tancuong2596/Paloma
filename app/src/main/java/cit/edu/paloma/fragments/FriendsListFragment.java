@@ -8,9 +8,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import cit.edu.paloma.MainActivity;
 import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.FriendListAdapter;
+import cit.edu.paloma.datamodals.User;
+import cit.edu.paloma.utils.FirebaseUtils;
 
 public class FriendsListFragment extends Fragment {
     public static final int CREATE_NEW_USER_WITH_INFO_RC = 0;
@@ -22,7 +34,9 @@ public class FriendsListFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         mViewRoot = inflater.inflate(R.layout.fragment_friends_list, container, false);
 
         mFriendListAdapter = new FriendListAdapter(getContext());
@@ -34,4 +48,62 @@ public class FriendsListFragment extends Fragment {
     }
 
 
+    public void updateFriendsList(Map<String, Object> friends, Map<String, Object> invites) {
+        if (friends == null) {
+            friends = Collections.emptyMap();
+        }
+
+        if (invites == null) {
+            invites = Collections.emptyMap();
+        }
+
+        final HashSet<String> acceptedFriendsId = new HashSet<>();
+        for (Map.Entry<String, Object> friend : friends.entrySet()) {
+            String friendId = friend.getKey();
+            String friendStatus = (String) friend.getValue();
+            if (friendStatus.equalsIgnoreCase(MainActivity.FRIEND_ACCEPTED)) {
+                acceptedFriendsId.add(friendId);
+            }
+        }
+
+        final HashSet<String> invitedFriendsId = new HashSet<>();
+        for (Map.Entry<String, Object> invite : invites.entrySet()) {
+            String inviteId = invite.getKey();
+            Boolean inviteStatus = (Boolean) invite.getValue();
+            if (inviteStatus) {
+                invitedFriendsId.add(inviteId);
+            }
+        }
+
+        final ArrayList<User> updatedFriends = new ArrayList<>();
+        final ArrayList<User> updatedInvites = new ArrayList<>();
+
+        FirebaseUtils
+                .getUsersRef()
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            User user = snapshot.getValue(User.class);
+                            if (acceptedFriendsId.contains(user.getUserId())) {
+                                updatedFriends.add(user);
+                            }
+
+                            if (invitedFriendsId.contains(user.getUserId())) {
+                                updatedInvites.add(user);
+                            }
+                        }
+
+                        mFriendListAdapter.updateFriends(updatedFriends);
+                        mFriendListAdapter.updateInvites(updatedInvites);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+
+    }
 }

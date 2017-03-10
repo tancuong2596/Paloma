@@ -42,10 +42,6 @@ public class SignInFragment
     private ConstraintLayout mSignInLayout;
     private View mRootView;
 
-    public interface UserSignInSuccessful {
-        void onUserSignInSuccessful();
-    }
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -111,7 +107,6 @@ public class SignInFragment
         }
     }
 
-    //
     private void showFailedMessage(String message) {
         new AlertDialog.Builder(getContext(), R.style.DialogTheme)
                 .setIcon(R.mipmap.ic_failed)
