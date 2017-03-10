@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="4dp"
-    android:layout_marginLeft="8dp"
-    android:layout_marginRight="8dp"
-    android:layout_marginTop="4dp"
+    android:padding="8dp"
     android:baselineAligned="false"
     android:gravity="center"
     android:orientation="horizontal">
@@ -16,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/fi_center_guide"
-        app:layout_constraintGuide_begin="20dp"
+        app:layout_constraintGuide_begin="24dp"
         android:orientation="horizontal" />
 
     <ImageView
@@ -34,24 +32,16 @@
         android:layout_height="wrap_content"
         android:textColor="@android:color/black"
         tools:text="Brad Pitt"
+        android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toRightOf="@id/fi_avatar_image"
         app:layout_constraintBottom_toTopOf="@id/fi_center_guide"/>
-
-    <TextView
-        android:id="@+id/fi_friend_email_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="12sp"
-        app:layout_constraintTop_toTopOf="@id/fi_friend_name_text"
-        app:layout_constraintBottom_toBottomOf="@id/fi_friend_name_text"
-        app:layout_constraintLeft_toRightOf="@id/fi_friend_name_text"
-        tools:text="(brad@gmail.com)" />
 
     <TextView
         android:id="@+id/fi_recent_msg_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:maxLines="2"
+        android:layout_marginLeft="8dp"
         tools:text="Hola, are your there? We are waiting for you! :)"
         app:layout_constraintTop_toTopOf="@id/fi_center_guide"
         app:layout_constraintLeft_toRightOf="@id/fi_avatar_image"/>

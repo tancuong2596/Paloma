@@ -222,6 +222,7 @@ public class MainActivity extends AppCompatActivity
                                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                     snapshot.getRef().child("online").setValue(Boolean.TRUE);
                                     mCurrentUser = snapshot.getValue(User.class);
+                                    Log.v(TAG, mCurrentUser.toString());
                                     updateFriendsList(mCurrentUser.getFriends(), mCurrentUser.getInvites());
                                     mFirebaseCurrentUserRef = snapshot.getRef();
                                 }
@@ -315,7 +316,7 @@ public class MainActivity extends AppCompatActivity
                                                     if (!email.equalsIgnoreCase(mFirebaseCurrentUser.getEmail())) {
                                                         String relationshipStatus = (String) mCurrentUser.getFriends().get(user.getUserId());
 
-                                                        if (relationshipStatus == null || relationshipStatus.equalsIgnoreCase("pending")) {
+                                                        if (relationshipStatus == null || relationshipStatus.equalsIgnoreCase(FRIEND_PENDING)) {
                                                             users.add(new Object[]{snapshot.getRef(), user});
                                                         }
                                                     }
@@ -397,7 +398,7 @@ public class MainActivity extends AppCompatActivity
 
             // add pending friend to friends list of current user
             User currentUser = mCurrentUser.getReplica();
-            currentUser.getFriends().put(invitedUser.getUserId(), "pending");
+            currentUser.getFriends().put(invitedUser.getUserId(), FRIEND_PENDING);
 
             HashMap<String, Object> updateChildren = new HashMap<>();
             updateChildren.put(mFirebaseCurrentUserRef.getKey(), currentUser.topMap());
