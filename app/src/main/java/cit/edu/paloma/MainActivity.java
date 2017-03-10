@@ -1,10 +1,10 @@
 package cit.edu.paloma;
 
 import android.content.res.Resources;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -18,21 +18,16 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Objects;
 
 import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
 import cit.edu.paloma.datamodals.User;
@@ -51,7 +46,7 @@ public class MainActivity extends AppCompatActivity
     private ValueEventListener mCurrentUserValueChanged;
     private Toolbar mToolbar;
     private ImageView mAvatarImageAction;
-    private TextView mUserFullnameTextAction;
+    private TextView mUserFullNameTextAction;
     private TextView mEmailTextAction;
     private ImageView mSearchBoxImageAction;
     private EditText mFriendEmailEditAction;
@@ -97,7 +92,7 @@ public class MainActivity extends AppCompatActivity
         mBackImageAction.setVisibility(searchVisibility);
 
         mAvatarImageAction.setVisibility(informationVisibility);
-        mUserFullnameTextAction.setVisibility(informationVisibility);
+        mUserFullNameTextAction.setVisibility(informationVisibility);
         mEmailTextAction.setVisibility(informationVisibility);
 
         mToolbar.setVisibility(View.VISIBLE);
@@ -105,13 +100,13 @@ public class MainActivity extends AppCompatActivity
 
     public void navigateTo(int fragmentId) throws Resources.NotFoundException {
         switch (fragmentId) {
-            case R.layout.fragment_chat:
+            case R.layout.fragment_friends_list:
 
                 showSearchBox(false);
 
                 mFragmentManager
                         .beginTransaction()
-                        .replace(R.id.fragment_container, new ChatFragment())
+                        .replace(R.id.fragment_container, new FriendsListFragment())
                         .commit();
 
                 break;
@@ -147,7 +142,7 @@ public class MainActivity extends AppCompatActivity
 
         mAvatarImageAction = (ImageView) findViewById(R.id.ac_avatar_image);
 
-        mUserFullnameTextAction = (TextView) findViewById(R.id.ac_user_full_name_text);
+        mUserFullNameTextAction = (TextView) findViewById(R.id.ac_user_full_name_text);
 
         mEmailTextAction = (TextView) findViewById(R.id.ac_email_text);
 
@@ -191,7 +186,7 @@ public class MainActivity extends AppCompatActivity
 
     private void showUserInfo() {
         showSearchBox(false);
-        mUserFullnameTextAction.setText(mFirebaseCurrentUser.getDisplayName());
+        mUserFullNameTextAction.setText(mFirebaseCurrentUser.getDisplayName());
         mEmailTextAction.setText(mFirebaseCurrentUser.getEmail());
         Picasso
                 .with(this)
@@ -211,7 +206,7 @@ public class MainActivity extends AppCompatActivity
                     Log.v(TAG, user.toString());
                     mFirebaseCurrentUser = user;
 
-                    navigateTo(R.layout.fragment_chat);
+                    navigateTo(R.layout.fragment_friends_list);
                     showUserInfo();
 
                     mCurrentUserValueChanged = new ValueEventListener() {
