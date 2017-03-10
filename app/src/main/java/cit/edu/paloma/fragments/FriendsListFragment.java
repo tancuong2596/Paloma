@@ -3,6 +3,7 @@ package cit.edu.paloma.fragments;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,9 +40,8 @@ public class FriendsListFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         mViewRoot = inflater.inflate(R.layout.fragment_friends_list, container, false);
 
-        mFriendListAdapter = new FriendListAdapter(getContext());
-
         mFriendList = (ListView) mViewRoot.findViewById(R.id.friends_list);
+        mFriendListAdapter = new FriendListAdapter(getContext(), mFriendList);
         mFriendList.setAdapter(mFriendListAdapter);
 
         return mViewRoot;
@@ -93,6 +93,9 @@ public class FriendsListFragment extends Fragment {
                                 updatedInvites.add(user);
                             }
                         }
+
+                        Log.v(TAG, "updatedFriends = " + updatedFriends.toString());
+                        Log.v(TAG, "updatedInvites = " + updatedInvites.toString());
 
                         mFriendListAdapter.updateFriends(updatedFriends);
                         mFriendListAdapter.updateInvites(updatedInvites);
