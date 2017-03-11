@@ -26,7 +26,7 @@ import cit.edu.paloma.utils.FirebaseUtils;
 /**
  * Created by charlie on 3/5/17.
  */
-public class FriendListAdapter extends BaseAdapter implements View.OnClickListener {
+public class FriendListAdapter extends BaseAdapter {
 
     private class FriendListAdapterItem {
         public static final int FRIEND = 0;
@@ -69,7 +69,7 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
     }
 
     public interface AcceptFriendInvitation {
-        void onAcceptFriendInvitation();
+        void onAcceptFriendInvitation(User invitingFriend);
     }
 
     private static final String TAG = FriendListAdapter.class.getSimpleName();
@@ -99,7 +99,7 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
     }
 
 
-    private View updateFriend(View item, User friend) {
+    private View updateFriend(View item, final User friend) {
         ImageView avatarImage = (ImageView) item.findViewById(R.id.usr_avatar_image);
         Picasso
                 .with(mContext)
@@ -120,12 +120,11 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
 
         Button addFriendButton = (Button) item.findViewById(R.id.usr_right_button);
         addFriendButton.setVisibility(View.GONE);
-        addFriendButton.setOnClickListener(this);
 
         return item;
     }
 
-    private View updateInvite(View item, User friend) {
+    private View updateInvite(View item, final User friend) {
         ImageView avatarImage = (ImageView) item.findViewById(R.id.usr_avatar_image);
         Picasso
                 .with(mContext)
@@ -147,19 +146,15 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
         Button addFriendButton = (Button) item.findViewById(R.id.usr_right_button);
         addFriendButton.setText(mContext.getString(R.string.accept));
         addFriendButton.setVisibility(View.VISIBLE);
+        addFriendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((AcceptFriendInvitation) mContext).onAcceptFriendInvitation(friend);
+            }
+        });
 
         return item;
     }
-
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.usr_right_button:
-                ((AcceptFriendInvitation) mContext).onAcceptFriendInvitation();
-                break;
-        }
-    }
-
 
     @Override
     public int getCount() {

@@ -27,7 +27,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 import cit.edu.paloma.adapters.FriendListAdapter;
@@ -395,24 +394,16 @@ public class MainActivity extends AppCompatActivity
     public void onAddFriend(int index, Object[] params) {
         try {
             User invitedUser = (User) params[1];
-            DatabaseReference invitedUserRef = (DatabaseReference) params[0];
 
             // add pending friend to friends list of current user
             User currentUser = mCurrentUser.getReplica();
             currentUser.getFriends().put(invitedUser.getUserId(), FRIEND_PENDING);
-
-            HashMap<String, Object> updateChildren = new HashMap<>();
-            updateChildren.put(mFirebaseCurrentUserRef.getKey(), currentUser.topMap());
-
-            FirebaseUtils.getUsersRef().updateChildren(updateChildren);
+            FirebaseUtils.updateUsersChildren(mFirebaseCurrentUserRef, currentUser, null);
 
             // add current user to invites list of pending friend
             invitedUser.getInvites().put(currentUser.getUserId(), Boolean.TRUE);
-
-            updateChildren.clear();
-            updateChildren.put(invitedUserRef.getKey(), invitedUser.topMap());
-
-            FirebaseUtils.getUsersRef().updateChildren(updateChildren);
+            DatabaseReference invitedUserRef = (DatabaseReference) params[0];
+            FirebaseUtils.updateUsersChildren(invitedUserRef, invitedUser, null);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -420,7 +411,31 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onAcceptFriendInvitation() {
+    public void onAcceptFriendInvitation(final User invitingFriend) {
+        FirebaseUtils
+                .getUsersRef()
+                .orderByChild("userId")
+                .equalTo(invitingFriend.getUserId())
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            // update invites[], and friends[] array for currentUser
+                            User currentUser = mCurrentUser.getReplica();
+                            currentUser.getInvites().remove(invitingFriend.getUserId());
+                            currentUser.getFriends().put(invitingFriend.getUserId(), FRIEND_ACCEPTED);
+                            FirebaseUtils.updateUsersChildren(mFirebaseCurrentUserRef, currentUser, null);
 
+                            // update friends[] array for invitingFriend
+                            invitingFriend.getFriends().put(mCurrentUser.getUserId(), FRIEND_ACCEPTED);
+                            FirebaseUtils.updateUsersChildren(snapshot.getRef(), invitingFriend, null);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
     }
 }
