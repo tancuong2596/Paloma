@@ -29,80 +29,16 @@ public class FirebaseUtils {
         return FirebaseDatabase.getInstance().getReference().child("users");
     }
 
-    public static void updateChildren(DatabaseReference mFirebaseCurrentUserRef,
-                                      User currentUser,
-                                      @Nullable DatabaseReference.CompletionListener completionListener) {
+    public static void updateUsersChildren(DatabaseReference userRef,
+                                           User newUserInfo,
+                                           @Nullable DatabaseReference.CompletionListener completionListener) {
 
         HashMap<String, Object> updateChildren = new HashMap<>();
-        updateChildren.put(mFirebaseCurrentUserRef.getKey(), currentUser.topMap());
+        updateChildren.put(userRef.getKey(), newUserInfo.topMap());
 
         FirebaseUtils
                 .getUsersRef()
                 .updateChildren(updateChildren, completionListener);
-    }
-
-
-    public static User findUserByUserId(final String uid) {
-        final User[] user = {new User()};
-
-        FirebaseUtils
-                .getUsersRef()
-                .orderByChild("userId")
-                .equalTo(uid)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.getChildrenCount() == 0) {
-                            user[0] = null;
-                        } else if (dataSnapshot.getChildrenCount() > 1) {
-                            Log.v(TAG, "User with UID " + uid + " has multiple instances");
-                        } else {
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                user[0] = snapshot.getValue(User.class);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-                });
-
-        return user[0];
-    }
-
-    public static DatabaseReference findUserRefByUserId(final String uid) {
-        final DatabaseReference[] userRef = {null};
-
-        FirebaseUtils
-                .getUsersRef()
-                .orderByChild("userId")
-                .equalTo(uid)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.getChildrenCount() == 0) {
-                            userRef[0] = null;
-                        } else if (dataSnapshot.getChildrenCount() > 1) {
-                            Log.v(TAG, "In callback: User with UID " + uid + " has multiple instances " + dataSnapshot.getChildrenCount());
-                        } else {
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                userRef[0] = snapshot.getRef();
-                                Log.v(TAG, userRef[0] == null ? "null" : userRef[0].toString());
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
-        Log.v(TAG, "out of callback: " + (userRef[0] == null ? "null" : userRef[0].toString()));
-        return userRef[0];
-
-
     }
 
 }
