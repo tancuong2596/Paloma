@@ -87,20 +87,19 @@ public class FriendsListFragment extends Fragment {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             User user = snapshot.getValue(User.class);
-//                            if (acceptedFriendsId.contains(user.getUserId())) {
-//                                updatedFriends.add(user);
-//                            }
-//
-//                            if (invitedFriendsId.contains(user.getUserId())) {
-//                                updatedInvites.add(user);
-//                            }
+                            if (acceptedFriendsId.contains(user.getUserId())) {
+                                updatedFriends.add(user);
+                            }
+
+                            if (invitedFriendsId.contains(user.getUserId())) {
+                                updatedInvites.add(user);
+                            }
                             Log.v(TAG, user.toString());
                         }
 
-//                        Log.v(TAG, updatedFriends.toString());
-//                        mFriendListAdapter.updateFriends(updatedFriends);
-//                        Log.v(TAG, updatedInvites.toString());
-                        //mFriendListAdapter.updateInvites(updatedInvites);
+                        Log.v(TAG, "updatedFriends = " + updatedFriends.toString());
+                        Log.v(TAG, "updatedInvites = " + updatedInvites.toString());
+                        mFriendListAdapter.updateUsers(updatedFriends, updatedInvites);
                     }
 
                     @Override

@@ -2,6 +2,8 @@ package cit.edu.paloma.adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +18,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import cit.edu.paloma.MainActivity;
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.User;
 
@@ -30,6 +33,14 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
 
         User user;
         int itemType;
+
+        @Override
+        public String toString() {
+            return "FriendListAdapterItem{" +
+                    "user=" + user +
+                    ", itemType=" + itemType +
+                    '}';
+        }
 
         public FriendListAdapterItem() {
         }
@@ -60,64 +71,77 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
     private ListView mListView;
     private Context mContext;
     private ArrayList<FriendListAdapterItem> mData;
-    private HashMap<String, Integer> mDataMap;
 
 
     public FriendListAdapter(Context context, ListView listView) {
         this.mContext = context;
         this.mData = new ArrayList<>();
-        this.mDataMap = new HashMap<>();
         this.mListView = listView;
     }
 
-    public void updateFriends(ArrayList<User> updatedFriends) {
+    public void updateUsers(ArrayList<User> updatedFriends, ArrayList<User> updatedInvites) {
+        mData.clear();
+
         for (User newUser : updatedFriends) {
-            Integer oldUserIndex = mDataMap.get(newUser.getUserId());
-            if (oldUserIndex == null) {
-                mData.add(new FriendListAdapterItem(newUser, FriendListAdapterItem.FRIEND));
-                mDataMap.put(newUser.getUserId(), mData.size() - 1);
-            } else {
-                if (mListView.getFirstVisiblePosition() <= oldUserIndex &&
-                        oldUserIndex <= mListView.getLastVisiblePosition()) {
-                    View item = mListView.getChildAt(oldUserIndex - mListView.getFirstVisiblePosition());
-                    updateFriend(item, newUser);
-                }
-                mData.set(oldUserIndex, new FriendListAdapterItem(newUser, FriendListAdapterItem.FRIEND));
-            }
+            mData.add(new FriendListAdapterItem(newUser, FriendListAdapterItem.FRIEND));
         }
+
+        for (User newUser : updatedInvites) {
+            mData.add(new FriendListAdapterItem(newUser, FriendListAdapterItem.INVITATION));
+        }
+
         notifyDataSetChanged();
     }
 
-    private View updateFriend(View item, User friend) {
-        ImageView avatarImage = (ImageView) item.findViewById(R.id.fi_avatar_image);
-        TextView friendNameText = (TextView) item.findViewById(R.id.fi_friend_name_text);
-        TextView recentMessageText = (TextView) item.findViewById(R.id.fi_recent_msg_text);
 
+    private View updateFriend(View item, User friend) {
+        ImageView avatarImage = (ImageView) item.findViewById(R.id.sfi_avatar_image);
         Picasso
                 .with(mContext)
                 .load(friend.getAvatar())
                 .into(avatarImage);
 
+        TextView friendNameText = (TextView) item.findViewById(R.id.sfi_friend_name_text);
         friendNameText.setText(friend.getFullName());
-        recentMessageText.setText(friend.getRecentMessage());
+
+        View onlineIndicatorView = item.findViewById(R.id.sfi_online_indicator_view);
+        onlineIndicatorView.setBackground(friend.isOnline() ?
+                ContextCompat.getDrawable(mContext, R.drawable.is_online) :
+                ContextCompat.getDrawable(mContext, R.drawable.is_offline)
+        );
+
+        TextView emailText = (TextView) item.findViewById(R.id.sfi_friend_email_text);
+        emailText.setText(friend.getEmail());
+
+        Button addFriendButton = (Button) item.findViewById(R.id.sfi_add_friend_button);
+        addFriendButton.setVisibility(View.GONE);
+        addFriendButton.setOnClickListener(this);
 
         return item;
     }
 
     private View updateInvite(View item, User friend) {
-        ImageView avatarImage = (ImageView) item.findViewById(R.id.fii_avatar_image);
-        TextView friendNameText = (TextView) item.findViewById(R.id.fii_friend_name_text);
-        TextView emailText = (TextView) item.findViewById(R.id.fii_email_text);
-        Button acceptButton = (Button) item.findViewById(R.id.fii_accept_button);
-
+        ImageView avatarImage = (ImageView) item.findViewById(R.id.sfi_avatar_image);
         Picasso
                 .with(mContext)
                 .load(friend.getAvatar())
                 .into(avatarImage);
 
+        TextView friendNameText = (TextView) item.findViewById(R.id.sfi_friend_name_text);
         friendNameText.setText(friend.getFullName());
+
+        View onlineIndicatorView = item.findViewById(R.id.sfi_online_indicator_view);
+        onlineIndicatorView.setBackground(friend.isOnline() ?
+                ContextCompat.getDrawable(mContext, R.drawable.is_online) :
+                ContextCompat.getDrawable(mContext, R.drawable.is_offline)
+        );
+
+        TextView emailText = (TextView) item.findViewById(R.id.sfi_friend_email_text);
         emailText.setText(friend.getEmail());
-        acceptButton.setOnClickListener(this);
+
+        Button addFriendButton = (Button) item.findViewById(R.id.sfi_add_friend_button);
+        addFriendButton.setText(mContext.getString(R.string.accept));
+        addFriendButton.setVisibility(View.VISIBLE);
 
         return item;
     }
@@ -125,29 +149,12 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.fii_accept_button:
+            case R.id.sfi_add_friend_button:
 
                 break;
         }
     }
 
-    public void updateInvites(ArrayList<User> updatedInvites) {
-        for (User newUser : updatedInvites) {
-            Integer oldUserIndex = mDataMap.get(newUser.getUserId());
-            if (oldUserIndex == null) {
-                mData.add(new FriendListAdapterItem(newUser, FriendListAdapterItem.INVITATION));
-                mDataMap.put(newUser.getUserId(), mData.size() - 1);
-            } else {
-                if (mListView.getFirstVisiblePosition() <= oldUserIndex &&
-                        oldUserIndex <= mListView.getLastVisiblePosition()) {
-                    View item = mListView.getChildAt(oldUserIndex - mListView.getFirstVisiblePosition());
-                    updateFriend(item, newUser);
-                }
-                mData.set(oldUserIndex, new FriendListAdapterItem(newUser, FriendListAdapterItem.INVITATION));
-            }
-        }
-        notifyDataSetChanged();
-    }
 
     @Override
     public int getCount() {
@@ -172,19 +179,19 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
         FriendListAdapterItem item = getItem(position);
         User friend = item.getUser();
 
-        if (item.getItemType() == FriendListAdapterItem.FRIEND) {
-            if (convertView == null) {
-                convertView = inflater.inflate(R.layout.friends_list_item_user, parent, false);
-            }
-            convertView = updateFriend(convertView, friend);
-        } else {
-            if (convertView == null) {
-                convertView = inflater.inflate(R.layout.friends_list_item_invitation, parent, false);
-            }
-            convertView = updateInvite(convertView, friend);
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.suggested_friend_item, parent, false);
         }
-        return convertView;
+
+        Log.v(TAG, item.toString());
+
+        switch (item.getItemType()) {
+            case FriendListAdapterItem.FRIEND:
+                return updateFriend(convertView, friend);
+            case FriendListAdapterItem.INVITATION:
+                return updateInvite(convertView, friend);
+            default:
+                return convertView;
+        }
     }
-
-
 }
