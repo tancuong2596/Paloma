@@ -16,9 +16,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import cit.edu.paloma.MainActivity;
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.User;
 
@@ -95,25 +93,25 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
 
 
     private View updateFriend(View item, User friend) {
-        ImageView avatarImage = (ImageView) item.findViewById(R.id.sfi_avatar_image);
+        ImageView avatarImage = (ImageView) item.findViewById(R.id.usr_avatar_image);
         Picasso
                 .with(mContext)
                 .load(friend.getAvatar())
                 .into(avatarImage);
 
-        TextView friendNameText = (TextView) item.findViewById(R.id.sfi_friend_name_text);
+        TextView friendNameText = (TextView) item.findViewById(R.id.usr_main_left_info_text);
         friendNameText.setText(friend.getFullName());
 
-        View onlineIndicatorView = item.findViewById(R.id.sfi_online_indicator_view);
+        View onlineIndicatorView = item.findViewById(R.id.usr_left_indicator_view);
         onlineIndicatorView.setBackground(friend.isOnline() ?
                 ContextCompat.getDrawable(mContext, R.drawable.is_online) :
                 ContextCompat.getDrawable(mContext, R.drawable.is_offline)
         );
 
-        TextView emailText = (TextView) item.findViewById(R.id.sfi_friend_email_text);
+        TextView emailText = (TextView) item.findViewById(R.id.usr_sub_left_info_text);
         emailText.setText(friend.getEmail());
 
-        Button addFriendButton = (Button) item.findViewById(R.id.sfi_add_friend_button);
+        Button addFriendButton = (Button) item.findViewById(R.id.usr_right_button);
         addFriendButton.setVisibility(View.GONE);
         addFriendButton.setOnClickListener(this);
 
@@ -121,25 +119,25 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
     }
 
     private View updateInvite(View item, User friend) {
-        ImageView avatarImage = (ImageView) item.findViewById(R.id.sfi_avatar_image);
+        ImageView avatarImage = (ImageView) item.findViewById(R.id.usr_avatar_image);
         Picasso
                 .with(mContext)
                 .load(friend.getAvatar())
                 .into(avatarImage);
 
-        TextView friendNameText = (TextView) item.findViewById(R.id.sfi_friend_name_text);
+        TextView friendNameText = (TextView) item.findViewById(R.id.usr_main_left_info_text);
         friendNameText.setText(friend.getFullName());
 
-        View onlineIndicatorView = item.findViewById(R.id.sfi_online_indicator_view);
+        View onlineIndicatorView = item.findViewById(R.id.usr_left_indicator_view);
         onlineIndicatorView.setBackground(friend.isOnline() ?
                 ContextCompat.getDrawable(mContext, R.drawable.is_online) :
                 ContextCompat.getDrawable(mContext, R.drawable.is_offline)
         );
 
-        TextView emailText = (TextView) item.findViewById(R.id.sfi_friend_email_text);
+        TextView emailText = (TextView) item.findViewById(R.id.usr_sub_left_info_text);
         emailText.setText(friend.getEmail());
 
-        Button addFriendButton = (Button) item.findViewById(R.id.sfi_add_friend_button);
+        Button addFriendButton = (Button) item.findViewById(R.id.usr_right_button);
         addFriendButton.setText(mContext.getString(R.string.accept));
         addFriendButton.setVisibility(View.VISIBLE);
 
@@ -149,7 +147,7 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.sfi_add_friend_button:
+            case R.id.usr_right_button:
 
                 break;
         }
@@ -180,7 +178,7 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
         User friend = item.getUser();
 
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.suggested_friend_item, parent, false);
+            convertView = inflater.inflate(R.layout.user_list_view_item, parent, false);
         }
 
         Log.v(TAG, item.toString());

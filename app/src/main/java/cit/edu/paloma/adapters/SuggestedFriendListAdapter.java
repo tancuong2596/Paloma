@@ -1,7 +1,6 @@
 package cit.edu.paloma.adapters;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -13,7 +12,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.firebase.database.DatabaseReference;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -38,7 +36,7 @@ public class SuggestedFriendListAdapter extends ArrayAdapter<Object[]> {
     public View getView(final int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.suggested_friend_item, parent, false);
+            convertView = inflater.inflate(R.layout.user_list_view_item, parent, false);
         }
 
         final Object[] params = getItem(position);
@@ -50,11 +48,13 @@ public class SuggestedFriendListAdapter extends ArrayAdapter<Object[]> {
 
         final User friend = (User) params[1];
 
-        ImageView avatarImage = (ImageView) convertView.findViewById(R.id.sfi_avatar_image);
-        TextView friendNameText = (TextView) convertView.findViewById(R.id.sfi_friend_name_text);
-        View onlineIndicatorView = convertView.findViewById(R.id.sfi_online_indicator_view);
-        TextView emailText = (TextView) convertView.findViewById(R.id.sfi_friend_email_text);
-        Button addFriendButton = (Button) convertView.findViewById(R.id.sfi_add_friend_button);
+        ImageView avatarImage = (ImageView) convertView.findViewById(R.id.usr_avatar_image);
+        TextView friendNameText = (TextView) convertView.findViewById(R.id.usr_main_left_info_text);
+        View onlineIndicatorView = convertView.findViewById(R.id.usr_left_indicator_view);
+        TextView emailText = (TextView) convertView.findViewById(R.id.usr_sub_left_info_text);
+        Button addFriendButton = (Button) convertView.findViewById(R.id.usr_right_button);
+
+        convertView.findViewById(R.id.usr_right_info_text).setVisibility(View.GONE);
 
         try {
             Picasso
