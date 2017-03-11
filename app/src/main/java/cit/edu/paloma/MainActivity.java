@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import cit.edu.paloma.adapters.FriendListAdapter;
 import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
 import cit.edu.paloma.datamodals.User;
 import cit.edu.paloma.fragments.FindFriendsFragment;
@@ -38,7 +39,7 @@ import cit.edu.paloma.fragments.SignInFragment;
 import cit.edu.paloma.utils.FirebaseUtils;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SuggestedFriendListAdapter.AddFriendListener {
+        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SuggestedFriendListAdapter.AddFriendListener, FriendListAdapter.AcceptFriendInvitation {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String FRAGMENT_FIND_FRIENDS = "FRAGMENT_FIND_FRIENDS";
@@ -416,5 +417,10 @@ public class MainActivity extends AppCompatActivity
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onAcceptFriendInvitation() {
+
     }
 }

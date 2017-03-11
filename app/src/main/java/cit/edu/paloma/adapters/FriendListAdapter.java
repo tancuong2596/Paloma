@@ -13,12 +13,15 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+import cit.edu.paloma.MainActivity;
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.User;
+import cit.edu.paloma.utils.FirebaseUtils;
 
 /**
  * Created by charlie on 3/5/17.
@@ -63,6 +66,10 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
         public void setItemType(int itemType) {
             this.itemType = itemType;
         }
+    }
+
+    public interface AcceptFriendInvitation {
+        void onAcceptFriendInvitation();
     }
 
     private static final String TAG = FriendListAdapter.class.getSimpleName();
@@ -148,7 +155,7 @@ public class FriendListAdapter extends BaseAdapter implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.usr_right_button:
-
+                ((AcceptFriendInvitation) mContext).onAcceptFriendInvitation();
                 break;
         }
     }
