@@ -1,6 +1,7 @@
 package cit.edu.paloma.utils;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
@@ -12,6 +13,8 @@ import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
 
 import cit.edu.paloma.datamodals.User;
 
@@ -25,6 +28,19 @@ public class FirebaseUtils {
     public static DatabaseReference getUsersRef() {
         return FirebaseDatabase.getInstance().getReference().child("users");
     }
+
+    public static void updateChildren(DatabaseReference mFirebaseCurrentUserRef,
+                                      User currentUser,
+                                      @Nullable DatabaseReference.CompletionListener completionListener) {
+
+        HashMap<String, Object> updateChildren = new HashMap<>();
+        updateChildren.put(mFirebaseCurrentUserRef.getKey(), currentUser.topMap());
+
+        FirebaseUtils
+                .getUsersRef()
+                .updateChildren(updateChildren, completionListener);
+    }
+
 
     public static User findUserByUserId(final String uid) {
         final User[] user = {new User()};
