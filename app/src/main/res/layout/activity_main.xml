@@ -42,17 +42,6 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <EditText
-                android:id="@+id/ac_friend_email_edit"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                app:layout_constraintLeft_toRightOf="@id/ac_back_image"
-                app:layout_constraintRight_toRightOf="parent"
-                android:hint="@string/enter_friend_email_here"
-                android:inputType="textEmailAddress"
-                android:textColorHint="@color/colorAccent"
-                android:textColor="@color/colorAccent" />
-
             <ImageView
                 android:id="@+id/ac_avatar_image"
                 android:layout_width="52dp"
@@ -62,7 +51,6 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-
 
             <View
                 android:id="@+id/view_transparent_sep"
@@ -96,14 +84,35 @@
                 tools:text="doe@mail.com" />
 
             <ImageView
-                android:id="@+id/ac_search_image"
+                android:id="@+id/ac_apply_image"
                 android:layout_width="52dp"
                 android:layout_height="52dp"
                 android:padding="8dp"
-                android:src="@drawable/ic_action_search"
+                android:src="@mipmap/ic_completed"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/ac_search_image"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="8dp"
+                android:src="@drawable/ic_action_search"
+                app:layout_constraintTop_toTopOf="@id/ac_apply_image"
+                app:layout_constraintBottom_toBottomOf="@id/ac_apply_image"
+                app:layout_constraintRight_toLeftOf="@id/ac_apply_image"/>
+
+            <EditText
+                android:id="@+id/ac_friend_email_edit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toRightOf="@id/ac_back_image"
+                app:layout_constraintRight_toLeftOf="@id/ac_search_image"
+                android:hint="@string/enter_friend_email_here"
+                android:inputType="textEmailAddress"
+                android:textColorHint="@color/colorAccent"
+                android:textColor="@color/colorAccent" />
 
         </android.support.constraint.ConstraintLayout>
     </android.support.v7.widget.Toolbar>

@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity
     private FragmentManager mFragmentManager;
     private ImageView mBackImageAction;
     private User mCurrentUser;
+    private ImageView mApplyImageAction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,6 +160,9 @@ public class MainActivity extends AppCompatActivity
         mBackImageAction = (ImageView) findViewById(R.id.ac_back_image);
         mBackImageAction.setOnClickListener(this);
 
+        mApplyImageAction = (ImageView) findViewById(R.id.ac_apply_image);
+        mApplyImageAction.setOnClickListener(this);
+
         mFriendEmailEditAction = (EditText) findViewById(R.id.ac_friend_email_edit);
 
         mFragmentManager = getSupportFragmentManager();
@@ -215,46 +220,21 @@ public class MainActivity extends AppCompatActivity
                     navigateTo(R.layout.fragment_friends_list);
                     showUserInfo();
 
-                    mCurrentUserValueChanged = new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.getChildrenCount() == 1) {
-                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                    snapshot.getRef().child("online").setValue(Boolean.TRUE);
-                                    mCurrentUser = snapshot.getValue(User.class);
-                                    Log.v(TAG, mCurrentUser.toString());
-                                    updateFriendsList(mCurrentUser.getFriends(), mCurrentUser.getInvites());
-                                    mFirebaseCurrentUserRef = snapshot.getRef();
-                                }
-                            } else {
-                                FirebaseUtils
-                                        .getUsersRef()
-                                        .push()
-                                        .setValue(new User(
-                                                user.getUid(),
-                                                user.getEmail(),
-                                                user.getDisplayName(),
-                                                user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "",
-                                                "",
-                                                true,
-                                                null,
-                                                null
-                                        ));
-                            }
-                        }
+                    mFirebaseCurrentUserRef = FirebaseDatabase
+                            .getInstance()
+                            .getReference()
+                            .child("/users/" + mFirebaseCurrentUser.getUid());
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    };
-
+                    mCurrentUser = new User(
+                            user.getUid(),
+                            user.getEmail(),
+                            user.getDisplayName(),
+                            user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "",
+                            true
+                    );
 
                     FirebaseUtils
-                            .getUsersRef()
-                            .orderByChild("userId")
-                            .equalTo(user.getUid())
-                            .addValueEventListener(mCurrentUserValueChanged);
+                            .updateUsersChildren(mFirebaseCurrentUserRef, mCurrentUser, null);
                 }
             }
         };
@@ -284,66 +264,18 @@ public class MainActivity extends AppCompatActivity
         switch (view.getId()) {
             case R.id.ac_search_image:
                 if (mFriendEmailEditAction.getVisibility() == View.VISIBLE) {
+                    String pattern = mFriendEmailEditAction.getText().toString().trim();
 
-                    if (mFriendEmailEditAction.getText().toString().trim().isEmpty()) {
+                    if (pattern.isEmpty()) {
                         return;
                     }
 
-                    final FindFriendsFragment fragment = (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+                    FindFriendsFragment fragment =
+                            (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
-                    fragment.showProgressBar(true);
-                    mSearchBoxImageAction.setEnabled(false);
-
-                    FirebaseUtils
-                            .getUsersRef()
-                            .orderByChild("email")
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    FindFriendsFragment findFriendsFragment =
-                                            (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
-
-                                    try {
-                                        if (mFirebaseCurrentUser != null) {
-                                            ArrayList<Object[]> users = new ArrayList<>();
-                                            String keyword = mFriendEmailEditAction.getText().toString();
-
-                                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                                User user = snapshot.getValue(User.class);
-                                                String email = user.getEmail().toLowerCase();
-
-                                                if (email.contains(keyword)) {
-                                                    if (!email.equalsIgnoreCase(mFirebaseCurrentUser.getEmail())) {
-                                                        String relationshipStatus = (String) mCurrentUser.getFriends().get(user.getUserId());
-
-                                                        if (relationshipStatus == null || relationshipStatus.equalsIgnoreCase(FRIEND_PENDING)) {
-                                                            users.add(new Object[]{snapshot.getRef(), user});
-                                                        }
-                                                    }
-                                                }
-
-                                            }
-
-                                            findFriendsFragment.setListOfUsers(users);
-                                        } else {
-                                            findFriendsFragment.setListOfUsers(null);
-                                        }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    } finally {
-                                        fragment.showProgressBar(false);
-                                        mSearchBoxImageAction.setEnabled(true);
-                                    }
-
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    fragment.showProgressBar(false);
-                                    mSearchBoxImageAction.setEnabled(true);
-                                }
-                            });
-
+                    if (fragment != null) {
+                        fragment.findUsersWithPattern(pattern);
+                    }
                 } else {
                     navigateTo(R.layout.fragment_find_friends);
                 }
@@ -395,6 +327,7 @@ public class MainActivity extends AppCompatActivity
         try {
             User invitedUser = (User) params[1];
 
+            /*
             // add pending friend to friends list of current user
             User currentUser = mCurrentUser.getReplica();
             currentUser.getFriends().put(invitedUser.getUserId(), FRIEND_PENDING);
@@ -404,6 +337,7 @@ public class MainActivity extends AppCompatActivity
             invitedUser.getInvites().put(currentUser.getUserId(), Boolean.TRUE);
             DatabaseReference invitedUserRef = (DatabaseReference) params[0];
             FirebaseUtils.updateUsersChildren(invitedUserRef, invitedUser, null);
+            */
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -421,6 +355,7 @@ public class MainActivity extends AppCompatActivity
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             // update invites[], and friends[] array for currentUser
+                            /*
                             User currentUser = mCurrentUser.getReplica();
                             currentUser.getInvites().remove(invitingFriend.getUserId());
                             currentUser.getFriends().put(invitingFriend.getUserId(), FRIEND_ACCEPTED);
@@ -429,6 +364,7 @@ public class MainActivity extends AppCompatActivity
                             // update friends[] array for invitingFriend
                             invitingFriend.getFriends().put(mCurrentUser.getUserId(), FRIEND_ACCEPTED);
                             FirebaseUtils.updateUsersChildren(snapshot.getRef(), invitingFriend, null);
+                            */
                         }
                     }
 

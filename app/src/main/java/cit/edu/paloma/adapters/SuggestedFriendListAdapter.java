@@ -76,17 +76,19 @@ public class SuggestedFriendListAdapter extends ArrayAdapter<Object[]> {
 
         final User currentUser = ((MainActivity) getContext()).getCurrentUser();
 
-        if (currentUser.getFriends().containsKey(friend.getUserId())) {
-            addFriendButton.setEnabled(false);
-            addFriendButton.setText(getContext().getString(R.string.pending));
-        } else {
-            addFriendButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ((AddFriendListener) getContext()).onAddFriend(position, params);
-                }
-            });
-        }
+//        if (currentUser.getFriends().containsKey(friend.getUserId())) {
+//            addFriendButton.setEnabled(false);
+//            addFriendButton.setText(getContext().getString(R.string.pending));
+//        } else {
+//            addFriendButton.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    ((AddFriendListener) getContext()).onAddFriend(position, params);
+//                }
+//            });
+//        }
+
+
 
         return convertView;
     }
