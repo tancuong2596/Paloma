@@ -1,9 +1,11 @@
 package cit.edu.paloma;
 
+import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -39,7 +41,7 @@ import cit.edu.paloma.fragments.SignInFragment;
 import cit.edu.paloma.utils.FirebaseUtils;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SuggestedFriendListAdapter.AddFriendListener, FriendListAdapter.AcceptFriendInvitation {
+        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String FRAGMENT_FIND_FRIENDS = "FRAGMENT_FIND_FRIENDS";
@@ -65,6 +67,7 @@ public class MainActivity extends AppCompatActivity
     private ImageView mBackImageAction;
     private User mCurrentUser;
     private ImageView mApplyImageAction;
+    private AlertDialog mGroupChatRenameDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +87,25 @@ public class MainActivity extends AppCompatActivity
                 .enableAutoManage(this, this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, mGoogleSignInOptions)
                 .build();
+
+
+        mGroupChatRenameDialog = new AlertDialog
+                .Builder(this, R.style.DialogTheme)
+                .setView(getLayoutInflater().inflate(R.layout.input_box_dialog, null))
+                .setTitle("Name your conversation")
+                .setPositiveButton("Create", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .create();
     }
 
     public GoogleSignInOptions getGoogleSignInOptions() {
@@ -243,17 +265,6 @@ public class MainActivity extends AppCompatActivity
         mFirebaseAuth.addAuthStateListener(mAuthListener);
     }
 
-    private void updateFriendsList(Map<String, Object> friends, Map<String, Object> invites) {
-        FriendsListFragment fragment =
-                (FriendsListFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FRIENDS_LIST);
-
-        if (fragment != null) {
-            fragment.updateFriendsList(friends, invites);
-        } else {
-            Log.v(TAG, "Cannot find " + FRAGMENT_FRIENDS_LIST);
-        }
-    }
-
     @Override
     protected void onStop() {
         super.onStop();
@@ -294,25 +305,7 @@ public class MainActivity extends AppCompatActivity
 
                 FirebaseUtils.createNewChatGroup(members, null);
 
-//                View alertView = getLayoutInflater().inflate(R.layout.input_box_dialog, null);
-
-//                new AlertDialog
-//                        .Builder(this, R.style.DialogTheme)
-//                        .setView(alertView)
-//                        .setTitle("Name your conversation")
-//                        .setPositiveButton("Create", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialogInterface, int i) {
-//
-//                            }
-//                        })
-//                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialogInterface, int i) {
-//
-//                            }
-//                        })
-//                        .create();
+                mFragmentManager.popBackStack();
 
                 break;
             }
@@ -352,58 +345,5 @@ public class MainActivity extends AppCompatActivity
             Auth.GoogleSignInApi.signOut(mGoogleApiClient);
         }
         mFirebaseCurrentUser = null;
-    }
-
-    @Override
-    public void onAddFriend(int index, Object[] params) {
-        try {
-            User invitedUser = (User) params[1];
-
-            /*
-            // add pending friend to friends list of current user
-            User currentUser = mCurrentUser.getReplica();
-            currentUser.getFriends().put(invitedUser.getUserId(), FRIEND_PENDING);
-            FirebaseUtils.updateUsersChildren(mFirebaseCurrentUserRef, currentUser, null);
-
-            // add current user to invites list of pending friend
-            invitedUser.getInvites().put(currentUser.getUserId(), Boolean.TRUE);
-            DatabaseReference invitedUserRef = (DatabaseReference) params[0];
-            FirebaseUtils.updateUsersChildren(invitedUserRef, invitedUser, null);
-            */
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onAcceptFriendInvitation(final User invitingFriend) {
-        FirebaseUtils
-                .getUsersRef()
-                .orderByChild("userId")
-                .equalTo(invitingFriend.getUserId())
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            // update invites[], and friends[] array for currentUser
-                            /*
-                            User currentUser = mCurrentUser.getReplica();
-                            currentUser.getInvites().remove(invitingFriend.getUserId());
-                            currentUser.getFriends().put(invitingFriend.getUserId(), FRIEND_ACCEPTED);
-                            FirebaseUtils.updateUsersChildren(mFirebaseCurrentUserRef, currentUser, null);
-
-                            // update friends[] array for invitingFriend
-                            invitingFriend.getFriends().put(mCurrentUser.getUserId(), FRIEND_ACCEPTED);
-                            FirebaseUtils.updateUsersChildren(snapshot.getRef(), invitingFriend, null);
-                            */
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
     }
 }
