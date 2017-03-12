@@ -69,7 +69,7 @@ public class FirebaseUtils {
 
         ChatGroup chatGroup = new ChatGroup(
                 groupChatId,
-                groupNameBuilder.substring(0, groupNameBuilder.length() - 3),
+                groupNameBuilder.substring(0, groupNameBuilder.length() - 2),
                 groupMembersUid,
                 Collections.emptyList(),
                 System.currentTimeMillis()

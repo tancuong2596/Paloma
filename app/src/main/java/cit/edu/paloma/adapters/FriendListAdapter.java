@@ -28,11 +28,6 @@ import cit.edu.paloma.utils.FirebaseUtils;
  * Created by charlie on 3/5/17.
  */
 public class FriendListAdapter extends BaseAdapter {
-
-    public interface AcceptFriendInvitation {
-        void onAcceptFriendInvitation(User invitingFriend);
-    }
-
     private static final String TAG = FriendListAdapter.class.getSimpleName();
     private ListView mListView;
     private Context mContext;
@@ -98,5 +93,6 @@ public class FriendListAdapter extends BaseAdapter {
         }
 
 
+        return convertView;
     }
 }

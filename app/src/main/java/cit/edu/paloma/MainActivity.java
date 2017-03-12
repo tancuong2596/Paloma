@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -301,9 +302,10 @@ public class MainActivity extends AppCompatActivity
             case R.id.ac_apply_image: {
                 FindFriendsFragment fragment =
                         (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+
                 ArrayList<Object[]> members = fragment.getSelectedMembers();
 
-                FirebaseUtils.createNewChatGroup(members, null);
+                DatabaseReference ref = FirebaseUtils.createNewChatGroup(members, null);
 
                 mFragmentManager.popBackStack();
 
@@ -321,23 +323,9 @@ public class MainActivity extends AppCompatActivity
         showSearchBox(true);
 
         if (mFirebaseCurrentUser != null) {
-            FirebaseUtils
-                    .getUsersRef()
-                    .orderByChild("userId")
-                    .equalTo(mFirebaseCurrentUser.getUid())
-                    .addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                snapshot.getRef().child("online").setValue(Boolean.FALSE);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
+            mFirebaseCurrentUserRef
+                    .child("online")
+                    .setValue(Boolean.FALSE);
         }
 
         FirebaseAuth.getInstance().signOut();
