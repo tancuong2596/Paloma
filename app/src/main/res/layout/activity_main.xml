@@ -88,6 +88,7 @@
                 android:layout_width="52dp"
                 android:layout_height="52dp"
                 android:padding="8dp"
+                android:visibility="gone"
                 android:src="@mipmap/ic_completed"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"

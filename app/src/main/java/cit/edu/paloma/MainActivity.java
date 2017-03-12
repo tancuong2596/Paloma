@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity
 
         mFriendEmailEditAction.setVisibility(searchVisibility);
         mBackImageAction.setVisibility(searchVisibility);
+        mApplyImageAction.setVisibility(searchVisibility);
 
         mAvatarImageAction.setVisibility(informationVisibility);
         mUserFullNameTextAction.setVisibility(informationVisibility);
