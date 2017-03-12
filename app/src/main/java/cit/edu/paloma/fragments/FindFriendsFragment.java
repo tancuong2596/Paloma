@@ -22,6 +22,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -48,6 +49,7 @@ public class FindFriendsFragment extends Fragment {
 
     private void initViews() {
         mAdapter = new SuggestedFriendListAdapter(getContext());
+        mAdapter.initializeMemberSet();
 
         mSuggestedFriendsList = (ListView) rootView.findViewById(R.id.suggested_friends_list);
         mSuggestedFriendsList.setAdapter(mAdapter);
@@ -55,6 +57,10 @@ public class FindFriendsFragment extends Fragment {
         mNoResultText = (TextView) rootView.findViewById(R.id.no_result_text);
 
         mSearchingText = (TextView) rootView.findViewById(R.id.searching_text);
+    }
+
+    public ArrayList<Object[]> getSelectedMembers() {
+        return mAdapter.getMembers();
     }
 
     public void showProgressBar(boolean b) {

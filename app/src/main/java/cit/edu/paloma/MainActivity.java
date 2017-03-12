@@ -263,7 +263,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.ac_search_image:
+            case R.id.ac_search_image: {
                 if (mFriendEmailEditAction.getVisibility() == View.VISIBLE) {
                     String pattern = mFriendEmailEditAction.getText().toString().trim();
 
@@ -281,10 +281,42 @@ public class MainActivity extends AppCompatActivity
                     navigateTo(R.layout.fragment_find_friends);
                 }
                 break;
-            case R.id.ac_back_image:
+            }
+            case R.id.ac_back_image: {
                 showSearchBox(false);
                 mFragmentManager.popBackStack();
                 break;
+            }
+            case R.id.ac_apply_image: {
+                FindFriendsFragment fragment =
+                        (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+                ArrayList<Object[]> members = fragment.getSelectedMembers();
+                for (Object[] member : members) {
+
+                }
+
+//                View alertView = getLayoutInflater().inflate(R.layout.input_box_dialog, null);
+
+//                new AlertDialog
+//                        .Builder(this, R.style.DialogTheme)
+//                        .setView(alertView)
+//                        .setTitle("Name your conversation")
+//                        .setPositiveButton("Create", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialogInterface, int i) {
+//
+//                            }
+//                        })
+//                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialogInterface, int i) {
+//
+//                            }
+//                        })
+//                        .create();
+
+                break;
+            }
         }
     }
 

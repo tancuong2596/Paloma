@@ -8,16 +8,16 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="SignInTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="CommonTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="DialogTheme" parent="ThemeOverlay.AppCompat.Dialog">
+    <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
         <!-- Customize your theme here. -->
-        <item name="colorAccent">@color/colorPrimary</item>
+        <item name="colorAccent">#292929</item>
     </style>
 
     <style name="UserRegisterTheme" parent="Theme.AppCompat.Light.NoActionBar">
@@ -27,7 +27,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="NormalButtonTheme" parent="SignInTheme">
+    <style name="NormalButtonTheme" parent="CommonTheme">
         <item name="android:background">@drawable/normal_button</item>
         <item name="android:textColor">@color/colorAccent</item>
         <item name="android:textAllCaps">true</item>
