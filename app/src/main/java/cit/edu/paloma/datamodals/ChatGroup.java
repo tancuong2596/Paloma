@@ -9,16 +9,20 @@ import java.util.List;
 
 public class ChatGroup {
     private String groupId;
+    private String groupName;
     private List<String> members;
     private List<Object> messages;
+    private long timestamp;
 
     public ChatGroup() {
     }
 
-    public ChatGroup(String groupId, List<String> members, List<Object> messages) {
+    public ChatGroup(String groupId, String groupName, List<String> members, List<Object> messages, long timestamp) {
         this.groupId = groupId;
+        this.groupName = groupName;
         this.members = members;
         this.messages = messages;
+        this.timestamp = timestamp;
     }
 
     public String getGroupId() {
@@ -27,6 +31,14 @@ public class ChatGroup {
 
     public void setGroupId(String groupId) {
         this.groupId = groupId;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     public List<String> getMembers() {
@@ -45,12 +57,11 @@ public class ChatGroup {
         this.messages = messages;
     }
 
-    @Override
-    public String toString() {
-        return "ChatGroup{" +
-                "groupId='" + groupId + '\'' +
-                ", members=" + members +
-                ", messages=" + messages +
-                '}';
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

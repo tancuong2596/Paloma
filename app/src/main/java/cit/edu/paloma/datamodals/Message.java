@@ -12,18 +12,16 @@ public class Message {
     private String messageId;
     private String senderId;
     private String contentType;
-    private String messageName;
     private Object content;
     private long timestamp;
 
     public Message() {
     }
 
-    public Message(String conversationId, String senderId, String contentType, String messageName, Object content, long timestamp) {
-        this.messageId = conversationId;
+    public Message(String messageId, String senderId, String contentType, Object content, long timestamp) {
+        this.messageId = messageId;
         this.senderId = senderId;
         this.contentType = contentType;
-        this.messageName = messageName;
         this.content = content;
         this.timestamp = timestamp;
     }
@@ -52,14 +50,6 @@ public class Message {
         this.contentType = contentType;
     }
 
-    public String getMessageName() {
-        return messageName;
-    }
-
-    public void setMessageName(String messageName) {
-        this.messageName = messageName;
-    }
-
     public Object getContent() {
         return content;
     }
@@ -82,7 +72,6 @@ public class Message {
                 "messageId='" + messageId + '\'' +
                 ", senderId='" + senderId + '\'' +
                 ", contentType='" + contentType + '\'' +
-                ", messageName='" + messageName + '\'' +
                 ", content=" + content +
                 ", timestamp=" + timestamp +
                 '}';
