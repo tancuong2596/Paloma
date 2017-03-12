@@ -291,9 +291,8 @@ public class MainActivity extends AppCompatActivity
                 FindFriendsFragment fragment =
                         (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
                 ArrayList<Object[]> members = fragment.getSelectedMembers();
-                for (Object[] member : members) {
 
-                }
+                FirebaseUtils.createNewChatGroup(members, null);
 
 //                View alertView = getLayoutInflater().inflate(R.layout.input_box_dialog, null);
 
