@@ -238,7 +238,6 @@ public class MainActivity extends AppCompatActivity
                 if (user == null) {
                     navigateTo(R.layout.fragment_sign_in);
                 } else {
-                    Log.v(TAG, user.toString());
                     mFirebaseCurrentUser = user;
 
                     navigateTo(R.layout.fragment_friends_list);
@@ -304,11 +303,11 @@ public class MainActivity extends AppCompatActivity
                         (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
                 ArrayList<Object[]> members = fragment.getSelectedMembers();
+                members.add(new Object[]{mFirebaseCurrentUserRef, mCurrentUser});
 
                 DatabaseReference ref = FirebaseUtils.createNewChatGroup(members, null);
 
                 mFragmentManager.popBackStack();
-
                 break;
             }
         }
