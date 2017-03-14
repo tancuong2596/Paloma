@@ -40,10 +40,6 @@ public class FirebaseUtils {
         return FirebaseDatabase.getInstance().getReference().child("chatGroups");
     }
 
-    public static DatabaseReference getChatGroupsOfMemberRef() {
-        return FirebaseDatabase.getInstance().getReference().child("chatGroupsOfMember");
-    }
-
     public static void updateUsersChildren(DatabaseReference userRef,
                                            User newUserInfo,
                                            @Nullable DatabaseReference.CompletionListener completionListener) {
@@ -69,11 +65,6 @@ public class FirebaseUtils {
             User user = (User) member[1];
             groupNameBuilder.append(user.getFullName()).append(", ");
             groupMembersUid.add(user.getUserId());
-            FirebaseUtils
-                    .getChatGroupsOfMemberRef()
-                    .child(user.getUserId())
-                    .push()
-                    .setValue(groupChatId);
         }
 
         ChatGroup chatGroup = new ChatGroup(
