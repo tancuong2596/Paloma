@@ -55,13 +55,13 @@
         android:maxLines="2"
         tools:text="Hello, are you there\nWe be looking for you" />
 
-    <View
-        android:id="@+id/triple_indicator"
-        android:layout_width="12dp"
-        android:layout_height="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="@+id/triple_sub_text"
-        app:layout_constraintTop_toBottomOf="@+id/triple_sub_text"
-        tools:background="@drawable/is_online" />
+    <!--<View-->
+        <!--android:id="@+id/triple_indicator"-->
+        <!--android:layout_width="12dp"-->
+        <!--android:layout_height="12dp"-->
+        <!--app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--app:layout_constraintLeft_toLeftOf="@+id/triple_sub_text"-->
+        <!--app:layout_constraintTop_toBottomOf="@+id/triple_sub_text"-->
+        <!--tools:background="@drawable/is_online" />-->
 
 </android.support.constraint.ConstraintLayout>
