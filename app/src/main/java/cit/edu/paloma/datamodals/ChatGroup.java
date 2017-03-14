@@ -13,16 +13,18 @@ public class ChatGroup {
     private HashMap<String, Object> members;
     private List<Object> messages;
     private long timestamp;
+    private String recentMessage;
 
     public ChatGroup() {
     }
 
-    public ChatGroup(String groupId, String groupName, HashMap<String, Object> members, List<Object> messages, long timestamp) {
+    public ChatGroup(String groupId, String groupName, HashMap<String, Object> members, List<Object> messages, long timestamp, String recentMessage) {
         this.groupId = groupId;
         this.groupName = groupName;
         this.members = members;
         this.messages = messages;
         this.timestamp = timestamp;
+        this.recentMessage = recentMessage;
     }
 
     public String getGroupId() {
@@ -65,6 +67,14 @@ public class ChatGroup {
         this.timestamp = timestamp;
     }
 
+    public String getRecentMessage() {
+        return recentMessage;
+    }
+
+    public void setRecentMessage(String recentMessage) {
+        this.recentMessage = recentMessage;
+    }
+
     @Exclude
     public HashMap<String, Object> toMap() {
         HashMap<String, Object> map = new HashMap<>();
@@ -73,6 +83,7 @@ public class ChatGroup {
         map.put("members", this.members);
         map.put("messages", this.messages);
         map.put("timestamp", this.timestamp);
+        map.put("recentMessage", this.recentMessage);
         return map;
     }
 
@@ -83,5 +94,6 @@ public class ChatGroup {
         this.members = chatGroup.members;
         this.messages = chatGroup.messages;
         this.timestamp = chatGroup.timestamp;
+        this.recentMessage = chatGroup.recentMessage;
     }
 }
