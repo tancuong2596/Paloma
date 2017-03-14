@@ -3,27 +3,21 @@ package cit.edu.paloma.datamodals;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-
-/**
- * Created by charlie on 3/12/17.
- */
 
 @IgnoreExtraProperties
 public class ChatGroup {
     private String groupId;
     private String groupName;
-    private List<String> members;
+    private HashMap<String, Object> members;
     private List<Object> messages;
     private long timestamp;
 
     public ChatGroup() {
     }
 
-    public ChatGroup(String groupId, String groupName, List<String> members, List<Object> messages, long timestamp) {
+    public ChatGroup(String groupId, String groupName, HashMap<String, Object> members, List<Object> messages, long timestamp) {
         this.groupId = groupId;
         this.groupName = groupName;
         this.members = members;
@@ -47,11 +41,11 @@ public class ChatGroup {
         this.groupName = groupName;
     }
 
-    public List<String> getMembers() {
+    public HashMap<String, Object> getMembers() {
         return members;
     }
 
-    public void setMembers(List<String> members) {
+    public void setMembers(HashMap<String, Object> members) {
         this.members = members;
     }
 
@@ -80,5 +74,14 @@ public class ChatGroup {
         map.put("messages", this.messages);
         map.put("timestamp", this.timestamp);
         return map;
+    }
+
+    @Exclude
+    public void copyFrom(ChatGroup chatGroup) {
+        this.groupId = chatGroup.groupId;
+        this.groupName = chatGroup.groupName;
+        this.members = chatGroup.members;
+        this.messages = chatGroup.messages;
+        this.timestamp = chatGroup.timestamp;
     }
 }
