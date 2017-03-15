@@ -30,10 +30,6 @@ public class SuggestedFriendsListAdapter extends ArrayAdapter<Object[]> {
         super(context, 0, new ArrayList<Object[]>());
     }
 
-    public interface AddFriendListener {
-        void onAddFriend(int index, Object[] params);
-    }
-
     public void initializeMemberSet() {
         mMemberIndexMap = new HashMap<>();
     }
