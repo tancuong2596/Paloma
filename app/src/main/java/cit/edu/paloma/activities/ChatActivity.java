@@ -16,10 +16,10 @@ import cit.edu.paloma.R;
 public class ChatActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String PARAM_ACTION_BAR_TITLE = "PARAM_ACTION_BAR_TITLE";
 
-    private Button sendButton;
-    private EditText messageEdit;
-    private ListView messagesList;
-    private ActionBar actionBar;
+    private Button mSendButton;
+    private EditText mMessageEdit;
+    private ListView mMessagesList;
+    private ActionBar mActionBar;
     private AlertDialog mGroupChatRenameDialog;
 
     @Override
@@ -30,12 +30,12 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initViews() {
-        sendButton = (Button) findViewById(R.id.send_button);
-        sendButton.setOnClickListener(this);
+        mSendButton = (Button) findViewById(R.id.send_button);
+        mSendButton.setOnClickListener(this);
 
-        messageEdit = (EditText) findViewById(R.id.message_edit);
+        mMessageEdit = (EditText) findViewById(R.id.message_edit);
 
-        messagesList = (ListView) findViewById(R.id.messages_list);
+        mMessagesList = (ListView) findViewById(R.id.messages_list);
 
         mGroupChatRenameDialog = new AlertDialog
                 .Builder(this, R.style.DialogTheme)
@@ -55,11 +55,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                 })
                 .create();
 
-        actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeButtonEnabled(true);
-            actionBar.setTitle(getIntent().getStringExtra(PARAM_ACTION_BAR_TITLE));
+        mActionBar = getSupportActionBar();
+        if (mActionBar != null) {
+            mActionBar.setDisplayHomeAsUpEnabled(true);
+            mActionBar.setHomeButtonEnabled(true);
+            mActionBar.setTitle(getIntent().getStringExtra(PARAM_ACTION_BAR_TITLE));
         }
     }
 
