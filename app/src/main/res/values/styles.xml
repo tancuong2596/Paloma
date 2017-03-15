@@ -8,7 +8,13 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="CommonTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="ChatActivityTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">#252525</item>
+    </style>
+
+    <style name="FragmentTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -27,7 +33,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="NormalButtonTheme" parent="CommonTheme">
+    <style name="NormalButtonTheme" parent="FragmentTheme">
         <item name="android:background">@drawable/normal_button</item>
         <item name="android:textColor">@color/colorAccent</item>
         <item name="android:textAllCaps">true</item>

@@ -27,4 +27,5 @@
     <string name="searching">Searching...</string>
     <string name="pending">Pending</string>
     <string name="accept">accept</string>
+    <string name="send">send</string>
 </resources>

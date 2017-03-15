@@ -11,9 +11,11 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
+
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="@string/twitter_consumer_key" />
@@ -22,6 +24,7 @@
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:label="@string/app_name" />
+
         <activity
             android:name="com.facebook.CustomTabActivity"
             android:exported="true">
@@ -34,20 +37,27 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/CommonTheme">
+            android:theme="@style/FragmentTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activities.UserDetailsActivity"
-            android:theme="@style/CommonTheme"></activity>
-        <activity android:name=".activities.ChatActivity"></activity>
+            android:theme="@style/FragmentTheme">
+        </activity>
+
+        <activity
+            android:name=".activities.ChatActivity"
+            android:theme="@style/ChatActivityTheme">
+        </activity>
+
     </application>
 
 </manifest>
