@@ -31,7 +31,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         messagesList = (ListView) findViewById(R.id.messages_list);
     }
 
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {

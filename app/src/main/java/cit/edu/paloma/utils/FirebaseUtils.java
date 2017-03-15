@@ -41,6 +41,10 @@ public class FirebaseUtils {
         return FirebaseDatabase.getInstance().getReference().child("chatGroups");
     }
 
+    public static DatabaseReference getMessagesRef() {
+        return FirebaseDatabase.getInstance().getReference().child("messages");
+    }
+
     public static void updateUsersChildren(DatabaseReference userRef,
                                            User newUserInfo,
                                            @Nullable DatabaseReference.CompletionListener completionListener) {
