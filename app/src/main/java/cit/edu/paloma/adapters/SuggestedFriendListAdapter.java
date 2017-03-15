@@ -16,7 +16,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.User;
