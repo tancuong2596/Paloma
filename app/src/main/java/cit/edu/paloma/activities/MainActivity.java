@@ -31,7 +31,7 @@ import java.util.ArrayList;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.User;
-import cit.edu.paloma.fragments.FindFriendsFragment;
+import cit.edu.paloma.fragments.SuggestedFriendsListFragment;
 import cit.edu.paloma.fragments.FriendsListFragment;
 import cit.edu.paloma.fragments.SignInFragment;
 import cit.edu.paloma.utils.FirebaseUtils;
@@ -146,12 +146,12 @@ public class MainActivity extends AppCompatActivity
                         .replace(R.id.fragment_container, new SignInFragment())
                         .commit();
                 break;
-            case R.layout.fragment_find_friends:
+            case R.layout.fragment_suggested_friends:
                 showSearchBox(true);
 
                 mFragmentManager
                         .beginTransaction()
-                        .add(R.id.fragment_container, new FindFriendsFragment(), FRAGMENT_FIND_FRIENDS)
+                        .add(R.id.fragment_container, new SuggestedFriendsListFragment(), FRAGMENT_FIND_FRIENDS)
                         .addToBackStack(null)
                         .commit();
 
@@ -277,14 +277,14 @@ public class MainActivity extends AppCompatActivity
                         return;
                     }
 
-                    FindFriendsFragment fragment =
-                            (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+                    SuggestedFriendsListFragment fragment =
+                            (SuggestedFriendsListFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
                     if (fragment != null) {
                         fragment.findUsersWithPattern(pattern);
                     }
                 } else {
-                    navigateTo(R.layout.fragment_find_friends);
+                    navigateTo(R.layout.fragment_suggested_friends);
                 }
                 break;
             }
@@ -294,8 +294,8 @@ public class MainActivity extends AppCompatActivity
                 break;
             }
             case R.id.ac_apply_image: {
-                FindFriendsFragment fragment =
-                        (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+                SuggestedFriendsListFragment fragment =
+                        (SuggestedFriendsListFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
                 ArrayList<Object[]> members = fragment.getSelectedMembers();
                 members.add(new Object[]{mFirebaseCurrentUserRef, mCurrentUser});

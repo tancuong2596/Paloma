@@ -20,13 +20,13 @@ import java.util.HashMap;
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.User;
 
-public class SuggestedFriendListAdapter extends ArrayAdapter<Object[]> {
-    private static final String TAG = SuggestedFriendListAdapter.class.getSimpleName();
+public class SuggestedFriendsListAdapter extends ArrayAdapter<Object[]> {
+    private static final String TAG = SuggestedFriendsListAdapter.class.getSimpleName();
     private static final String MEMBER_REMOVE = "remove";
     private static final String MEMBER_ADD = "add";
     private HashMap<String, Integer> mMemberIndexMap;
 
-    public SuggestedFriendListAdapter(Context context) {
+    public SuggestedFriendsListAdapter(Context context) {
         super(context, 0, new ArrayList<Object[]>());
     }
 

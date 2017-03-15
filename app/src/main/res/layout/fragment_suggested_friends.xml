@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@android:color/white"
-    tools:context="cit.edu.paloma.fragments.FindFriendsFragment">
+    tools:context="cit.edu.paloma.fragments.SuggestedFriendsListFragment">
 
     <ListView
         android:id="@+id/suggested_friends_list"
