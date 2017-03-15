@@ -1,4 +1,4 @@
-package cit.edu.paloma;
+package cit.edu.paloma.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,6 +27,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import cit.edu.paloma.MainActivity;
+import cit.edu.paloma.R;
+
 public class SignInFragment
         extends Fragment
         implements View.OnClickListener, FirebaseAuth.AuthStateListener, GoogleApiClient.OnConnectionFailedListener {
@@ -38,10 +41,6 @@ public class SignInFragment
     private ConstraintLayout mWaitingLayout;
     private ConstraintLayout mSignInLayout;
     private View mRootView;
-
-    public interface UserSignInSuccessful {
-        void onUserSignInSuccessful();
-    }
 
     @Nullable
     @Override
@@ -108,7 +107,6 @@ public class SignInFragment
         }
     }
 
-    //
     private void showFailedMessage(String message) {
         new AlertDialog.Builder(getContext(), R.style.DialogTheme)
                 .setIcon(R.mipmap.ic_failed)

@@ -1,10 +1,12 @@
 package cit.edu.paloma;
 
+import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -17,9 +19,8 @@ import android.widget.TextView;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -30,19 +31,25 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.Map;
 
+import cit.edu.paloma.adapters.FriendListAdapter;
 import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
 import cit.edu.paloma.datamodals.User;
+import cit.edu.paloma.fragments.FindFriendsFragment;
+import cit.edu.paloma.fragments.FriendsListFragment;
+import cit.edu.paloma.fragments.SignInFragment;
 import cit.edu.paloma.utils.FirebaseUtils;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener, SuggestedFriendListAdapter.AddFriendListener {
+        implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String FRAGMENT_FIND_FRIENDS = "FRAGMENT_FIND_FRIENDS";
+    private static final String FRAGMENT_FRIENDS_LIST = "FRAGMENT_FRIENDS_LIST";
+
+    public static final String FRIEND_ACCEPTED = "accepted";
+    public static final String FRIEND_PENDING = "pending";
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -51,7 +58,7 @@ public class MainActivity extends AppCompatActivity
     private ValueEventListener mCurrentUserValueChanged;
     private Toolbar mToolbar;
     private ImageView mAvatarImageAction;
-    private TextView mUserFullnameTextAction;
+    private TextView mUserFullNameTextAction;
     private TextView mEmailTextAction;
     private ImageView mSearchBoxImageAction;
     private EditText mFriendEmailEditAction;
@@ -60,6 +67,8 @@ public class MainActivity extends AppCompatActivity
     private FragmentManager mFragmentManager;
     private ImageView mBackImageAction;
     private User mCurrentUser;
+    private ImageView mApplyImageAction;
+    private AlertDialog mGroupChatRenameDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +88,25 @@ public class MainActivity extends AppCompatActivity
                 .enableAutoManage(this, this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, mGoogleSignInOptions)
                 .build();
+
+
+        mGroupChatRenameDialog = new AlertDialog
+                .Builder(this, R.style.DialogTheme)
+                .setView(getLayoutInflater().inflate(R.layout.input_box_dialog, null))
+                .setTitle("Name your conversation")
+                .setPositiveButton("Create", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .create();
     }
 
     public GoogleSignInOptions getGoogleSignInOptions() {
@@ -95,9 +123,10 @@ public class MainActivity extends AppCompatActivity
 
         mFriendEmailEditAction.setVisibility(searchVisibility);
         mBackImageAction.setVisibility(searchVisibility);
+        mApplyImageAction.setVisibility(searchVisibility);
 
         mAvatarImageAction.setVisibility(informationVisibility);
-        mUserFullnameTextAction.setVisibility(informationVisibility);
+        mUserFullNameTextAction.setVisibility(informationVisibility);
         mEmailTextAction.setVisibility(informationVisibility);
 
         mToolbar.setVisibility(View.VISIBLE);
@@ -105,13 +134,12 @@ public class MainActivity extends AppCompatActivity
 
     public void navigateTo(int fragmentId) throws Resources.NotFoundException {
         switch (fragmentId) {
-            case R.layout.fragment_chat:
-
+            case R.layout.fragment_friends_list:
                 showSearchBox(false);
 
                 mFragmentManager
                         .beginTransaction()
-                        .replace(R.id.fragment_container, new ChatFragment())
+                        .replace(R.id.fragment_container, new FriendsListFragment(), FRAGMENT_FRIENDS_LIST)
                         .commit();
 
                 break;
@@ -124,7 +152,6 @@ public class MainActivity extends AppCompatActivity
                         .commit();
                 break;
             case R.layout.fragment_find_friends:
-
                 showSearchBox(true);
 
                 mFragmentManager
@@ -147,7 +174,7 @@ public class MainActivity extends AppCompatActivity
 
         mAvatarImageAction = (ImageView) findViewById(R.id.ac_avatar_image);
 
-        mUserFullnameTextAction = (TextView) findViewById(R.id.ac_user_full_name_text);
+        mUserFullNameTextAction = (TextView) findViewById(R.id.ac_user_full_name_text);
 
         mEmailTextAction = (TextView) findViewById(R.id.ac_email_text);
 
@@ -156,6 +183,9 @@ public class MainActivity extends AppCompatActivity
 
         mBackImageAction = (ImageView) findViewById(R.id.ac_back_image);
         mBackImageAction.setOnClickListener(this);
+
+        mApplyImageAction = (ImageView) findViewById(R.id.ac_apply_image);
+        mApplyImageAction.setOnClickListener(this);
 
         mFriendEmailEditAction = (EditText) findViewById(R.id.ac_friend_email_edit);
 
@@ -191,7 +221,7 @@ public class MainActivity extends AppCompatActivity
 
     private void showUserInfo() {
         showSearchBox(false);
-        mUserFullnameTextAction.setText(mFirebaseCurrentUser.getDisplayName());
+        mUserFullNameTextAction.setText(mFirebaseCurrentUser.getDisplayName());
         mEmailTextAction.setText(mFirebaseCurrentUser.getEmail());
         Picasso
                 .with(this)
@@ -208,50 +238,26 @@ public class MainActivity extends AppCompatActivity
                 if (user == null) {
                     navigateTo(R.layout.fragment_sign_in);
                 } else {
-                    Log.v(TAG, user.toString());
                     mFirebaseCurrentUser = user;
 
-                    navigateTo(R.layout.fragment_chat);
+                    navigateTo(R.layout.fragment_friends_list);
                     showUserInfo();
 
-                    mCurrentUserValueChanged = new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.getChildrenCount() == 1) {
-                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                    snapshot.getRef().child("online").setValue(Boolean.TRUE);
-                                    mCurrentUser = snapshot.getValue(User.class);
-                                    mFirebaseCurrentUserRef = snapshot.getRef();
-                                }
-                            } else {
-                                FirebaseUtils
-                                        .getUsersRef()
-                                        .push()
-                                        .setValue(new User(
-                                                user.getUid(),
-                                                user.getEmail(),
-                                                user.getDisplayName(),
-                                                user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "",
-                                                "",
-                                                true,
-                                                null,
-                                                null
-                                        ));
-                            }
-                        }
+                    mFirebaseCurrentUserRef = FirebaseDatabase
+                            .getInstance()
+                            .getReference()
+                            .child("/users/" + mFirebaseCurrentUser.getUid());
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    };
-
+                    mCurrentUser = new User(
+                            user.getUid(),
+                            user.getEmail(),
+                            user.getDisplayName(),
+                            user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "",
+                            true
+                    );
 
                     FirebaseUtils
-                            .getUsersRef()
-                            .orderByChild("userId")
-                            .equalTo(user.getUid())
-                            .addValueEventListener(mCurrentUserValueChanged);
+                            .updateUsersChildren(mFirebaseCurrentUserRef, mCurrentUser, null);
                 }
             }
         };
@@ -268,76 +274,42 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.ac_search_image:
+            case R.id.ac_search_image: {
                 if (mFriendEmailEditAction.getVisibility() == View.VISIBLE) {
+                    String pattern = mFriendEmailEditAction.getText().toString().trim();
 
-                    if (mFriendEmailEditAction.getText().toString().trim().isEmpty()) {
+                    if (pattern.isEmpty()) {
                         return;
                     }
 
-                    final FindFriendsFragment fragment = (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+                    FindFriendsFragment fragment =
+                            (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
-                    fragment.showProgressBar(true);
-                    mSearchBoxImageAction.setEnabled(false);
-
-                    FirebaseUtils
-                            .getUsersRef()
-                            .orderByChild("email")
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    FindFriendsFragment findFriendsFragment =
-                                            (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
-
-                                    try {
-                                        if (mFirebaseCurrentUser != null) {
-                                            ArrayList<Object[]> users = new ArrayList<>();
-                                            String keyword = mFriendEmailEditAction.getText().toString();
-
-                                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                                User user = snapshot.getValue(User.class);
-                                                String email = user.getEmail().toLowerCase();
-
-                                                if (email.contains(keyword)) {
-                                                    if (!email.equalsIgnoreCase(mFirebaseCurrentUser.getEmail())) {
-                                                        String relationshipStatus = (String) mCurrentUser.getFriends().get(user.getUserId());
-
-                                                        if (relationshipStatus == null || relationshipStatus.equalsIgnoreCase("pending")) {
-                                                            users.add(new Object[]{snapshot.getRef(), user});
-                                                        }
-                                                    }
-                                                }
-
-                                            }
-
-                                            findFriendsFragment.setListOfUsers(users);
-                                        } else {
-                                            findFriendsFragment.setListOfUsers(null);
-                                        }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    } finally {
-                                        fragment.showProgressBar(false);
-                                        mSearchBoxImageAction.setEnabled(true);
-                                    }
-
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    fragment.showProgressBar(false);
-                                    mSearchBoxImageAction.setEnabled(true);
-                                }
-                            });
-
+                    if (fragment != null) {
+                        fragment.findUsersWithPattern(pattern);
+                    }
                 } else {
                     navigateTo(R.layout.fragment_find_friends);
                 }
                 break;
-            case R.id.ac_back_image:
+            }
+            case R.id.ac_back_image: {
                 showSearchBox(false);
                 mFragmentManager.popBackStack();
                 break;
+            }
+            case R.id.ac_apply_image: {
+                FindFriendsFragment fragment =
+                        (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+
+                ArrayList<Object[]> members = fragment.getSelectedMembers();
+                members.add(new Object[]{mFirebaseCurrentUserRef, mCurrentUser});
+
+                DatabaseReference ref = FirebaseUtils.createNewChatGroup(members, null);
+
+                mFragmentManager.popBackStack();
+                break;
+            }
         }
     }
 
@@ -350,23 +322,9 @@ public class MainActivity extends AppCompatActivity
         showSearchBox(true);
 
         if (mFirebaseCurrentUser != null) {
-            FirebaseUtils
-                    .getUsersRef()
-                    .orderByChild("userId")
-                    .equalTo(mFirebaseCurrentUser.getUid())
-                    .addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                snapshot.getRef().child("online").setValue(Boolean.FALSE);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
+            mFirebaseCurrentUserRef
+                    .child("online")
+                    .setValue(Boolean.FALSE);
         }
 
         FirebaseAuth.getInstance().signOut();
@@ -374,33 +332,5 @@ public class MainActivity extends AppCompatActivity
             Auth.GoogleSignInApi.signOut(mGoogleApiClient);
         }
         mFirebaseCurrentUser = null;
-    }
-
-    @Override
-    public void onAddFriend(int index, Object[] params) {
-        try {
-            User invitedUser = (User) params[1];
-            DatabaseReference invitedUserRef = (DatabaseReference) params[0];
-
-            // add pending friend to friends list of current user
-            User currentUser = mCurrentUser.getReplica();
-            currentUser.getFriends().put(invitedUser.getUserId(), "pending");
-
-            HashMap<String, Object> updateChildren = new HashMap<>();
-            updateChildren.put(mFirebaseCurrentUserRef.getKey(), currentUser.topMap());
-
-            FirebaseUtils.getUsersRef().updateChildren(updateChildren);
-
-            // add current user to invites list of pending friend
-            invitedUser.getInvites().put(currentUser.getUserId(), Boolean.TRUE);
-
-            updateChildren.clear();
-            updateChildren.put(invitedUserRef.getKey(), invitedUser.topMap());
-
-            FirebaseUtils.getUsersRef().updateChildren(updateChildren);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

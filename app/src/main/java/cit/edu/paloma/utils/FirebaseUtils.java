@@ -1,8 +1,10 @@
 package cit.edu.paloma.utils;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -11,8 +13,16 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+
+import cit.edu.paloma.datamodals.ChatGroup;
 import cit.edu.paloma.datamodals.User;
 
 public class FirebaseUtils {
@@ -26,67 +36,61 @@ public class FirebaseUtils {
         return FirebaseDatabase.getInstance().getReference().child("users");
     }
 
-    public static User findUserByUserId(final String uid) {
-        final User[] user = {new User()};
+    public static DatabaseReference getChatGroupsRef() {
+        return FirebaseDatabase.getInstance().getReference().child("chatGroups");
+    }
+
+    public static DatabaseReference getChatGroupsOfMemberRef() {
+        return FirebaseDatabase.getInstance().getReference().child("chatGroupsOfMember");
+    }
+
+    public static void updateUsersChildren(DatabaseReference userRef,
+                                           User newUserInfo,
+                                           @Nullable DatabaseReference.CompletionListener completionListener) {
+
+        HashMap<String, Object> updateChildren = new HashMap<>();
+        updateChildren.put(userRef.getKey(), newUserInfo.topMap());
 
         FirebaseUtils
                 .getUsersRef()
-                .orderByChild("userId")
-                .equalTo(uid)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.getChildrenCount() == 0) {
-                            user[0] = null;
-                        } else if (dataSnapshot.getChildrenCount() > 1) {
-                            Log.v(TAG, "User with UID " + uid + " has multiple instances");
-                        } else {
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                user[0] = snapshot.getValue(User.class);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-                });
-
-        return user[0];
+                .updateChildren(updateChildren, completionListener);
     }
 
-    public static DatabaseReference findUserRefByUserId(final String uid) {
-        final DatabaseReference[] userRef = {null};
+    public static DatabaseReference createNewChatGroup(final ArrayList<Object[]> members, @Nullable OnCompleteListener onCompleteListener) {
+        DatabaseReference chatGroupRef = FirebaseUtils
+                .getChatGroupsRef()
+                .push();
+
+        String groupChatId = chatGroupRef.getKey();
+        StringBuilder groupNameBuilder = new StringBuilder();
+        ArrayList<String> groupMembersUid = new ArrayList<>();
+
+        for (Object[] member : members) {
+            User user = (User) member[1];
+            groupNameBuilder.append(user.getFullName()).append(", ");
+            groupMembersUid.add(user.getUserId());
+            FirebaseUtils
+                    .getChatGroupsOfMemberRef()
+                    .child(user.getUserId())
+                    .push()
+                    .setValue(groupChatId);
+        }
+
+        ChatGroup chatGroup = new ChatGroup(
+                groupChatId,
+                groupNameBuilder.substring(0, groupNameBuilder.length() - 2),
+                groupMembersUid,
+                Collections.emptyList(),
+                System.currentTimeMillis()
+        );
+
+        HashMap<String, Object> updateChildren = new HashMap<>();
+        updateChildren.put(groupChatId, chatGroup.toMap());
 
         FirebaseUtils
-                .getUsersRef()
-                .orderByChild("userId")
-                .equalTo(uid)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.getChildrenCount() == 0) {
-                            userRef[0] = null;
-                        } else if (dataSnapshot.getChildrenCount() > 1) {
-                            Log.v(TAG, "In callback: User with UID " + uid + " has multiple instances " + dataSnapshot.getChildrenCount());
-                        } else {
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                userRef[0] = snapshot.getRef();
-                                Log.v(TAG, userRef[0] == null ? "null" : userRef[0].toString());
-                            }
-                        }
-                    }
+                .getChatGroupsRef()
+                .updateChildren(updateChildren);
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
-        Log.v(TAG, "out of callback: " + (userRef[0] == null ? "null" : userRef[0].toString()));
-        return userRef[0];
-
-
+        return chatGroupRef;
     }
-
 }
