@@ -6,6 +6,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.StringBuilderPrinter;
 
+import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -58,20 +59,18 @@ public class FirebaseUtils {
                 .push();
 
         String groupChatId = chatGroupRef.getKey();
-        StringBuilder groupNameBuilder = new StringBuilder();
-        ArrayList<String> groupMembersUid = new ArrayList<>();
+        HashMap<String, Object> groupMembersUid = new HashMap<>();
 
         for (Object[] member : members) {
             User user = (User) member[1];
-            groupNameBuilder.append(user.getFullName()).append(", ");
-            groupMembersUid.add(user.getUserId());
+            groupMembersUid.put(user.getUserId(), user.getAvatar());
         }
 
         ChatGroup chatGroup = new ChatGroup(
                 groupChatId,
-                groupNameBuilder.substring(0, groupNameBuilder.length() - 2),
+                "",
                 groupMembersUid,
-                Collections.emptyList(),
+                new ArrayList<>(),
                 System.currentTimeMillis()
         );
 

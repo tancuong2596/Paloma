@@ -1,8 +1,10 @@
 package cit.edu.paloma.adapters;
 
 import android.content.Context;
+import android.nfc.Tag;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,13 +16,21 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 
-import cit.edu.paloma.MainActivity;
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.ChatGroup;
+import cit.edu.paloma.datamodals.Message;
 import cit.edu.paloma.datamodals.User;
 import cit.edu.paloma.utils.FirebaseUtils;
 
@@ -31,49 +41,87 @@ public class FriendListAdapter extends BaseAdapter {
     private static final String TAG = FriendListAdapter.class.getSimpleName();
     private ListView mListView;
     private Context mContext;
-    private ArrayList<ChatGroup> mData;
-
+    private ArrayList<ChatGroup> mChatGroups;
+    private HashMap<String, Integer> mKeyMap;
 
     public FriendListAdapter(Context context, ListView listView) {
-        this.mContext = context;
-        this.mData = new ArrayList<>();
-        this.mListView = listView;
+        mContext = context;
+        mListView = listView;
+
+        mChatGroups = new ArrayList<>();
+        mKeyMap = new HashMap<>();
+
+        setupChatGroupsChildEventListener();
     }
 
+    private void setupChatGroupsChildEventListener() {
+        final FirebaseUser firebaseCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-    private View updateFriend(View item, final User friend) {
-        ImageView avatarImage = (ImageView) item.findViewById(R.id.usr_avatar_image);
-        Picasso
-                .with(mContext)
-                .load(friend.getAvatar())
-                .into(avatarImage);
+        if (firebaseCurrentUser != null) {
+            FirebaseUtils
+                    .getChatGroupsRef()
+                    .addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String prevChildName) {
+                            ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
+                            String childName = dataSnapshot.getKey();
 
-        TextView friendNameText = (TextView) item.findViewById(R.id.usr_main_left_info_text);
-        friendNameText.setText(friend.getFullName());
+                            if (prevChildName == null) {
+                                mChatGroups.add(0, chatGroup);
+                                mKeyMap.put(childName, 0);
+                            } else {
+                                Integer prevChildIndex = mKeyMap.get(prevChildName);
+                                mChatGroups.add(prevChildIndex + 1, chatGroup);
+                                mKeyMap.put(childName, prevChildIndex + 1);
+                            }
 
-        View onlineIndicatorView = item.findViewById(R.id.usr_left_indicator_view);
-        onlineIndicatorView.setBackground(friend.isOnline() ?
-                ContextCompat.getDrawable(mContext, R.drawable.is_online) :
-                ContextCompat.getDrawable(mContext, R.drawable.is_offline)
-        );
+                            notifyDataSetChanged();
+                        }
 
-        TextView emailText = (TextView) item.findViewById(R.id.usr_sub_left_info_text);
-        emailText.setText(friend.getEmail());
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String prevChildName) {
+                            ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
+                            String childName = dataSnapshot.getKey();
 
-        Button addFriendButton = (Button) item.findViewById(R.id.usr_right_button);
-        addFriendButton.setVisibility(View.GONE);
+                            Integer childIndex = mKeyMap.get(childName);
+                            mChatGroups.set(childIndex, chatGroup);
 
-        return item;
+                            notifyDataSetChanged();
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+                            String childName = dataSnapshot.getKey();
+
+                            int childIndex = mKeyMap.get(childName);
+                            mChatGroups.remove(childIndex);
+                            mKeyMap.remove(childName);
+
+                            notifyDataSetChanged();
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+        }
+
     }
 
     @Override
     public int getCount() {
-        return mData.size();
+        return mChatGroups.size();
     }
 
     @Override
     public ChatGroup getItem(int i) {
-        return mData.get(i);
+        return mChatGroups.get(i);
     }
 
     @Override
@@ -84,15 +132,197 @@ public class FriendListAdapter extends BaseAdapter {
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        final LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
         ChatGroup chatGroup = getItem(position);
 
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.user_list_view_item, parent, false);
+        if (chatGroup.getMembers().size() <= 2) {
+            return itemOfCoupleMembers(chatGroup, convertView, parent);
+        } else {
+            return itemOfMultipleMembers(chatGroup, convertView, parent);
+        }
+    }
+
+    private View itemOfMultipleMembers(ChatGroup chatGroup, View view, ViewGroup parent) {
+        LayoutInflater layoutInflater =
+                (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        if (view == null || view.findViewById(R.id.user1_avatar_image) == null) {
+            view = layoutInflater.inflate(R.layout.chat_group_more_list_view_item, parent, false);
         }
 
+        // variables for views
+        ImageView user1AvatarImage = (ImageView) view.findViewById(R.id.user1_avatar_image);
+        ImageView user2AvatarImage = (ImageView) view.findViewById(R.id.user2_avatar_image);
+        ImageView user3AvatarImage = (ImageView) view.findViewById(R.id.user3_avatar_image);
+        TextView tripleMainText = (TextView) view.findViewById(R.id.triple_main_text);
+        TextView tripleSubText = (TextView) view.findViewById(R.id.triple_sub_text);
 
-        return convertView;
+        // three first users
+
+        String[] userAvatars = new String[]{"", "", ""};
+        int index = 0;
+        for (String key : chatGroup.getMembers().keySet()) {
+            if (index >= 3) {
+                break;
+            }
+            userAvatars[index] = (String) chatGroup.getMembers().get(key);
+            index++;
+        }
+
+        // load avatar for three first users
+        Picasso
+                .with(mContext)
+                .load(userAvatars[0])
+                .into(user1AvatarImage);
+        Picasso
+                .with(mContext)
+                .load(userAvatars[1])
+                .into(user2AvatarImage);
+        Picasso
+                .with(mContext)
+                .load(userAvatars[2])
+                .into(user3AvatarImage);
+
+        // set group name which is combination of name of all users
+        if (chatGroup.getGroupName() == null || chatGroup.getGroupName().trim().isEmpty()) {
+            makeGroupName(chatGroup.getMembers(), tripleMainText);
+        } else {
+            tripleMainText.setText(chatGroup.getGroupName());
+        }
+
+        // todo: set recent message text
+        Message recentMessage = null;
+
+        if (chatGroup.getMessages() != null && !chatGroup.getMessages().isEmpty()) {
+            recentMessage = ((Message) chatGroup.getMessages().get(chatGroup.getMessages().size() - 1));
+        }
+
+        if (recentMessage != null) {
+            tripleSubText.setText((String) recentMessage.getContent());
+        } else {
+            tripleSubText.setText(null);
+        }
+
+        return view;
+    }
+
+    private void makeGroupName(final HashMap<String, Object> members, final TextView textView) {
+        FirebaseUtils
+                .getUsersRef()
+                .orderByChild("userId")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        StringBuilder name = new StringBuilder();
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            User user = snapshot.getValue(User.class);
+                            name.append(user.getFullName()).append(", ");
+                        }
+
+                        int nOthers = members.size() - 3;
+
+                        name = new StringBuilder(name.substring(0, name.length() - 2));
+
+                        if (nOthers >= 1) {
+                            name.append(" and ").append(nOthers).append(" other").append(nOthers > 1 ? "s": "");
+                        }
+
+                        textView.setText(name.toString());
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+
+    private View itemOfCoupleMembers(final ChatGroup chatGroup, View view, ViewGroup parent) {
+        LayoutInflater layoutInflater =
+                (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        if (view == null || view.findViewById(R.id.usr_right_button) == null) {
+            view = layoutInflater.inflate(R.layout.user_list_view_item, parent, false);
+        }
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        // variables for views
+        ImageView avatarImage = (ImageView) view.findViewById(R.id.usr_avatar_image);
+        final TextView mainLeftInfoText = (TextView) view.findViewById(R.id.usr_main_left_info_text);
+        final TextView subLeftInfoText = (TextView) view.findViewById(R.id.usr_sub_left_info_text);
+        final View leftIndicatorView = view.findViewById(R.id.usr_left_indicator_view);
+        Button rightButton = (Button) view.findViewById(R.id.usr_right_button);
+        TextView rightInfoText = (TextView) view.findViewById(R.id.usr_right_info_text);
+
+        // the only user different from the current one
+        String avatar = "";
+        String userId = "";
+
+        if (currentUser == null) {
+            return view;
+        }
+
+        for (String key : chatGroup.getMembers().keySet()) {
+            if (!key.equalsIgnoreCase(currentUser.getUid())) {
+                avatar = (String) chatGroup.getMembers().get(key);
+                userId = key;
+                break;
+            }
+        }
+
+        Picasso
+                .with(mContext)
+                .load(avatar)
+                .into(avatarImage);
+
+        Message recentMessage = null;
+
+
+        if (chatGroup.getMessages() != null && !chatGroup.getMessages().isEmpty()) {
+            recentMessage = ((Message) chatGroup.getMessages().get(chatGroup.getMessages().size() - 1));
+        }
+
+        if (recentMessage != null) {
+            subLeftInfoText.setText((String) recentMessage.getContent());
+        } else {
+            subLeftInfoText.setText(null);
+        }
+
+        FirebaseUtils
+                .getUsersRef()
+                .orderByChild("userId")
+                .equalTo(userId)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            User user = snapshot.getValue(User.class);
+
+                            mainLeftInfoText.setText(user.getFullName());
+
+                            if (subLeftInfoText.getText() == null || subLeftInfoText.getText().toString().isEmpty()) {
+                                subLeftInfoText.setText(user.getEmail());
+                            }
+
+                            if (user.isOnline()) {
+                                leftIndicatorView.setBackground(ContextCompat.getDrawable(mContext, R.drawable.is_online));
+                            } else {
+                                leftIndicatorView.setBackground(ContextCompat.getDrawable(mContext, R.drawable.is_offline));
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+
+        rightButton.setVisibility(View.GONE);
+        rightInfoText.setVisibility(View.GONE);
+
+        return view;
     }
 }

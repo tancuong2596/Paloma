@@ -1,4 +1,4 @@
-package cit.edu.paloma;
+package cit.edu.paloma.activities;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -20,27 +19,17 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseException;
-import com.google.firebase.database.Exclude;
-import com.google.firebase.database.ValueEventListener;
 import com.squareup.okhttp.Response;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
-import cit.edu.paloma.datamodals.User;
-import cit.edu.paloma.utils.FirebaseUtils;
+import cit.edu.paloma.R;
 import cit.edu.paloma.utils.ImgurUtils;
 
 import static android.provider.MediaStore.*;

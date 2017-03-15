@@ -1,4 +1,4 @@
-package cit.edu.paloma;
+package cit.edu.paloma.activities;
 
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -19,22 +19,17 @@ import android.widget.TextView;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.Map;
 
-import cit.edu.paloma.adapters.FriendListAdapter;
-import cit.edu.paloma.adapters.SuggestedFriendListAdapter;
+import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.User;
 import cit.edu.paloma.fragments.FindFriendsFragment;
 import cit.edu.paloma.fragments.FriendsListFragment;

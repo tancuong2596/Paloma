@@ -27,7 +27,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
-import cit.edu.paloma.MainActivity;
+import cit.edu.paloma.activities.MainActivity;
 import cit.edu.paloma.R;
 
 public class SignInFragment
