@@ -197,7 +197,7 @@ public class FriendListAdapter extends BaseAdapter {
         }
 
         if (recentMessage != null) {
-            tripleSubText.setText((String) recentMessage.getContent());
+            tripleSubText.setText(recentMessage.getContent());
         } else {
             tripleSubText.setText(null);
         }
@@ -284,7 +284,7 @@ public class FriendListAdapter extends BaseAdapter {
         }
 
         if (recentMessage != null) {
-            subLeftInfoText.setText((String) recentMessage.getContent());
+            subLeftInfoText.setText(recentMessage.getContent());
         } else {
             subLeftInfoText.setText(null);
         }

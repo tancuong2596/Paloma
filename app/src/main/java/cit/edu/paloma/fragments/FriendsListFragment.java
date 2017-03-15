@@ -4,11 +4,15 @@ import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
 
 import cit.edu.paloma.activities.ChatActivity;
 import cit.edu.paloma.activities.MainActivity;
@@ -41,6 +45,22 @@ public class FriendsListFragment extends Fragment implements AdapterView.OnItemC
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        startActivity(new Intent(getActivity(), ChatActivity.class));
+        Bundle bundle = new Bundle();
+
+        bundle.putString(ChatActivity.PARAM_ACTION_BAR_TITLE, getGroupName(view));
+        Intent intent = new Intent(getActivity(), ChatActivity.class);
+        intent.putExtras(bundle);
+
+        startActivity(intent);
+    }
+
+    private String getGroupName(View view) {
+        TextView mainLeftInfo = (TextView) view.findViewById(R.id.usr_main_left_info_text);
+        TextView tripleMainText = (TextView) view.findViewById(R.id.triple_main_text);
+        if (mainLeftInfo == null) {
+            return tripleMainText.getText().toString();
+        } else {
+            return mainLeftInfo.getText().toString();
+        }
     }
 }

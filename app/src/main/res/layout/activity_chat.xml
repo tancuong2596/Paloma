@@ -24,6 +24,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/send_button"
+        android:hint="Text to Friends"
         android:minHeight="48dp"
         android:layout_width="0dp"
         android:layout_height="wrap_content" />

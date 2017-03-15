@@ -83,25 +83,6 @@ public class MainActivity extends AppCompatActivity
                 .enableAutoManage(this, this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, mGoogleSignInOptions)
                 .build();
-
-
-        mGroupChatRenameDialog = new AlertDialog
-                .Builder(this, R.style.DialogTheme)
-                .setView(getLayoutInflater().inflate(R.layout.input_box_dialog, null))
-                .setTitle("Name your conversation")
-                .setPositiveButton("Create", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .create();
     }
 
     public GoogleSignInOptions getGoogleSignInOptions() {
@@ -300,7 +281,7 @@ public class MainActivity extends AppCompatActivity
                 ArrayList<Object[]> members = fragment.getSelectedMembers();
                 members.add(new Object[]{mFirebaseCurrentUserRef, mCurrentUser});
 
-                DatabaseReference ref = FirebaseUtils.createNewChatGroup(members, null);
+                FirebaseUtils.createNewChatGroup(members, null);
 
                 mFragmentManager.popBackStack();
                 break;
@@ -323,9 +304,11 @@ public class MainActivity extends AppCompatActivity
         }
 
         FirebaseAuth.getInstance().signOut();
+
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             Auth.GoogleSignInApi.signOut(mGoogleApiClient);
         }
+
         mFirebaseCurrentUser = null;
     }
 }
