@@ -10,8 +10,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 
 import cit.edu.paloma.R;
+import cit.edu.paloma.adapters.MessagesListAdapter;
+import cit.edu.paloma.utils.FirebaseUtils;
 
 public class ChatActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String PARAM_ACTION_BAR_TITLE = "PARAM_ACTION_BAR_TITLE";
@@ -21,6 +28,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private ListView mMessagesList;
     private ActionBar mActionBar;
     private AlertDialog mGroupChatRenameDialog;
+    private TextView mEmptyConversationText;
+    private MessagesListAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +42,13 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         mSendButton = (Button) findViewById(R.id.send_button);
         mSendButton.setOnClickListener(this);
 
+        mEmptyConversationText = (TextView) findViewById(R.id.empty_conversation_text);
+
         mMessageEdit = (EditText) findViewById(R.id.message_edit);
 
         mMessagesList = (ListView) findViewById(R.id.messages_list);
+        mAdapter = new MessagesListAdapter(this);
+        mMessagesList.setAdapter(mAdapter);
 
         mGroupChatRenameDialog = new AlertDialog
                 .Builder(this, R.style.DialogTheme)
