@@ -28,4 +28,6 @@
     <string name="pending">Pending</string>
     <string name="accept">accept</string>
     <string name="send">send</string>
+    <string name="empty_conversation">empty conversation</string>
+    <string name="text_to_friends">Text to Friends</string>
 </resources>
