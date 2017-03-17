@@ -1,11 +1,8 @@
 package cit.edu.paloma.adapters;
 
 import android.content.Context;
-import android.nfc.Tag;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,8 +22,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.ChatGroup;
@@ -37,14 +32,14 @@ import cit.edu.paloma.utils.FirebaseUtils;
 /**
  * Created by charlie on 3/5/17.
  */
-public class FriendListAdapter extends BaseAdapter {
-    private static final String TAG = FriendListAdapter.class.getSimpleName();
+public class FriendsListAdapter extends BaseAdapter {
+    private static final String TAG = FriendsListAdapter.class.getSimpleName();
     private ListView mListView;
     private Context mContext;
     private ArrayList<ChatGroup> mChatGroups;
     private HashMap<String, Integer> mKeyMap;
 
-    public FriendListAdapter(Context context, ListView listView) {
+    public FriendsListAdapter(Context context, ListView listView) {
         mContext = context;
         mListView = listView;
 
@@ -135,13 +130,13 @@ public class FriendListAdapter extends BaseAdapter {
         ChatGroup chatGroup = getItem(position);
 
         if (chatGroup.getMembers().size() <= 2) {
-            return itemOfCoupleMembers(chatGroup, convertView, parent);
+            return getItemOfCoupleMembers(chatGroup, convertView, parent);
         } else {
-            return itemOfMultipleMembers(chatGroup, convertView, parent);
+            return getItemOfMultipleMembers(chatGroup, convertView, parent);
         }
     }
 
-    private View itemOfMultipleMembers(ChatGroup chatGroup, View view, ViewGroup parent) {
+    private View getItemOfMultipleMembers(ChatGroup chatGroup, View view, ViewGroup parent) {
         LayoutInflater layoutInflater =
                 (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -157,7 +152,6 @@ public class FriendListAdapter extends BaseAdapter {
         TextView tripleSubText = (TextView) view.findViewById(R.id.triple_sub_text);
 
         // three first users
-
         String[] userAvatars = new String[]{"", "", ""};
         int index = 0;
         for (String key : chatGroup.getMembers().keySet()) {
@@ -237,7 +231,7 @@ public class FriendListAdapter extends BaseAdapter {
     }
 
 
-    private View itemOfCoupleMembers(final ChatGroup chatGroup, View view, ViewGroup parent) {
+    private View getItemOfCoupleMembers(final ChatGroup chatGroup, View view, ViewGroup parent) {
         LayoutInflater layoutInflater =
                 (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
