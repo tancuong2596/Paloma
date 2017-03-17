@@ -1,12 +1,9 @@
 package cit.edu.paloma.adapters;
 
 import android.content.Context;
-import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 
 import com.google.firebase.database.ChildEventListener;
@@ -26,12 +23,12 @@ import cit.edu.paloma.utils.FirebaseUtils;
 public class MessagesListAdapter extends BaseAdapter {
     private final Context mContext;
     private final ArrayList<Message> mMessagesList;
-    private final HashMap<Message, Integer> mMessageIndexMap;
+    private final HashMap<String, Integer> mMessageKeyIndexMap;
 
     public MessagesListAdapter(@NonNull Context context) {
         this.mContext = context;
         this.mMessagesList = new ArrayList<>();
-        this.mMessageIndexMap = new HashMap<>();
+        this.mMessageKeyIndexMap = new HashMap<>();
         setupMessagesChildEventListener();
     }
 
@@ -41,18 +38,38 @@ public class MessagesListAdapter extends BaseAdapter {
                 .orderByChild("timestamp")
                 .addChildEventListener(new ChildEventListener() {
                     @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
+                    public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
+                        Message message = dataSnapshot.getValue(Message.class);
+                        if (prevChildKey == null) {
+                            mMessagesList.add(0, message);
+                            mMessageKeyIndexMap.put(message.getMessageId(), 0);
+                        } else {
+                            int prevChildIndex = mMessageKeyIndexMap.get(prevChildKey);
+                            mMessagesList.add(prevChildIndex + 1, message);
+                            mMessageKeyIndexMap.put(message.getMessageId(), prevChildIndex + 1);
+                        }
+                        notifyDataSetChanged();
                     }
 
                     @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                    public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {
+                        Message message = dataSnapshot.getValue(Message.class);
 
+                        int childIndex = mMessageKeyIndexMap.get(message.getMessageId());
+                        mMessagesList.set(childIndex, message);
+
+                        notifyDataSetChanged();
                     }
 
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
+                        Message message = dataSnapshot.getValue(Message.class);
 
+                        int childIndex = mMessageKeyIndexMap.get(message.getMessageId());
+                        mMessagesList.remove(childIndex);
+                        mMessageKeyIndexMap.remove(message.getMessageId());
+
+                        notifyDataSetChanged();
                     }
 
                     @Override
@@ -84,6 +101,8 @@ public class MessagesListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        return null;
+        Message message = getItem(position);
+
+        return convertView;
     }
 }
