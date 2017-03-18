@@ -1,6 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="8dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="8dp">
+
+    <ImageView
+        android:id="@+id/text_item_avatar_image"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        tools:src="@drawable/facebook_button"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/text_item_full_name_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toRightOf="@+id/text_item_avatar_image"
+        app:layout_constraintTop_toTopOf="@+id/text_item_avatar_image"
+        tools:text="Brad Pitt" />
+
+    <TextView
+        android:id="@+id/text_item_send_time_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:textSize="12sp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/text_item_full_name_text"
+        app:layout_constraintBottom_toBottomOf="@+id/text_item_full_name_text"
+        app:layout_constraintLeft_toRightOf="@+id/text_item_full_name_text"
+        tools:text="9:00 PM" />
+
+    <TextView
+        android:id="@+id/text_item_message_content_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/black"
+        app:layout_constraintLeft_toLeftOf="@+id/text_item_full_name_text"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_item_full_name_text"
+        tools:text="La corrupción es considerada como un acto ilegal, el cual ocurre cuando una persona abusa de su poder para obtener algún beneficio para sí mismo o para su entorno cercano. Este acto requiere de la participación de dos o más actores: uno que por su posición de poder pueda ofrecer algo, ya sea un pago o un ofrecimiento de cualquier índole para obtener lo que desea y otro que esté dispuesto a recibir el pago o el soborno." />
 
 </android.support.constraint.ConstraintLayout>
