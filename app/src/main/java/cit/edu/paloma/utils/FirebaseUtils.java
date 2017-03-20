@@ -1,29 +1,25 @@
 package cit.edu.paloma.utils;
 
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
-import android.util.Log;
-import android.util.StringBuilderPrinter;
 
-import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cit.edu.paloma.datamodals.ChatGroup;
+import cit.edu.paloma.datamodals.Message;
 import cit.edu.paloma.datamodals.User;
 
 public class FirebaseUtils {
@@ -43,6 +39,29 @@ public class FirebaseUtils {
 
     public static DatabaseReference getMessagesRef() {
         return FirebaseDatabase.getInstance().getReference().child("messages");
+    }
+
+    public static void sendMessage(Message message, @Nullable OnCompleteListener onCompleteListener) {
+        DatabaseReference newMessageRef = FirebaseUtils
+                .getMessagesRef()
+                .push();
+
+        String messageKey = newMessageRef.getKey();
+
+        message.setMessageId(messageKey);
+
+        HashMap<String, Object> updateChildren = new HashMap<>();
+        updateChildren.put(message.getGroupChatId() + "/" + messageKey, message.toMap());
+
+        FirebaseUtils
+                .getChatGroupsRef()
+                .child(message.getGroupChatId())
+                .child("recentMessage")
+                .setValue(FirebaseAuth.getInstance().getCurrentUser().getDisplayName() + ": " + message.getContent());
+
+        FirebaseUtils
+                .getMessagesRef()
+                .updateChildren(updateChildren);
     }
 
     public static void updateUsersChildren(DatabaseReference userRef,
@@ -73,9 +92,8 @@ public class FirebaseUtils {
         ChatGroup chatGroup = new ChatGroup(
                 groupChatId,
                 "",
-                groupMembersUid,
-                new ArrayList<>(),
-                System.currentTimeMillis()
+                "",
+                new HashMap<String, Object>()
         );
 
         HashMap<String, Object> updateChildren = new HashMap<>();

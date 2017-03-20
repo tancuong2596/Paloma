@@ -20,6 +20,8 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResolvingResultCallbacks;
+import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -30,11 +32,13 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import cit.edu.paloma.R;
+import cit.edu.paloma.datamodals.ChatGroup;
 import cit.edu.paloma.datamodals.User;
 import cit.edu.paloma.fragments.SuggestedFriendsListFragment;
 import cit.edu.paloma.fragments.FriendsListFragment;
 import cit.edu.paloma.fragments.SignInFragment;
 import cit.edu.paloma.utils.FirebaseUtils;
+import cit.edu.paloma.utils.MessagesAdapterUtils;
 
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
@@ -244,6 +248,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         mFirebaseAuth.removeAuthStateListener(mAuthListener);
     }
 
@@ -295,7 +304,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void signOut() {
-        showSearchBox(true);
+        showSearchBox(false);
+        MessagesAdapterUtils.clear();
 
         if (mFirebaseCurrentUser != null) {
             mFirebaseCurrentUserRef
@@ -303,10 +313,14 @@ public class MainActivity extends AppCompatActivity
                     .setValue(Boolean.FALSE);
         }
 
-        FirebaseAuth.getInstance().signOut();
+        FirebaseAuth
+                .getInstance()
+                .signOut();
 
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
-            Auth.GoogleSignInApi.signOut(mGoogleApiClient);
+            Auth
+                    .GoogleSignInApi
+                    .signOut(mGoogleApiClient);
         }
 
         mFirebaseCurrentUser = null;

@@ -11,19 +11,17 @@ import java.util.List;
 public class ChatGroup {
     private String groupId;
     private String groupName;
+    private String recentMessage;
     private HashMap<String, Object> members;
-    private ArrayList<Object> messages;
-    private long timestamp;
 
     public ChatGroup() {
     }
 
-    public ChatGroup(String groupId, String groupName, HashMap<String, Object> members, ArrayList<Object> messages, long timestamp) {
+    public ChatGroup(String groupId, String groupName, String recentMessage, HashMap<String, Object> members) {
         this.groupId = groupId;
         this.groupName = groupName;
+        this.recentMessage = recentMessage;
         this.members = members;
-        this.messages = messages;
-        this.timestamp = timestamp;
     }
 
     public String getGroupId() {
@@ -42,6 +40,14 @@ public class ChatGroup {
         this.groupName = groupName;
     }
 
+    public String getRecentMessage() {
+        return recentMessage;
+    }
+
+    public void setRecentMessage(String recentMessage) {
+        this.recentMessage = recentMessage;
+    }
+
     public HashMap<String, Object> getMembers() {
         return members;
     }
@@ -50,30 +56,13 @@ public class ChatGroup {
         this.members = members;
     }
 
-    public ArrayList<Object> getMessages() {
-        return messages;
-    }
-
-    public void setMessages(ArrayList<Object> messages) {
-        this.messages = messages;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
     @Exclude
     public HashMap<String, Object> toMap() {
         HashMap<String, Object> map = new HashMap<>();
         map.put("groupId", this.groupId);
         map.put("groupName", this.groupName);
         map.put("members", this.members);
-        map.put("messages", this.messages);
-        map.put("timestamp", this.timestamp);
+        map.put("recentMessage", this.recentMessage);
         return map;
     }
 
@@ -82,7 +71,6 @@ public class ChatGroup {
         this.groupId = chatGroup.groupId;
         this.groupName = chatGroup.groupName;
         this.members = chatGroup.members;
-        this.messages = chatGroup.messages;
-        this.timestamp = chatGroup.timestamp;
+        this.recentMessage = chatGroup.recentMessage;
     }
 }

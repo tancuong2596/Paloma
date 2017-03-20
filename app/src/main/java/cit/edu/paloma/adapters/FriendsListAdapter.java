@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
@@ -183,15 +184,15 @@ public class FriendsListAdapter extends BaseAdapter {
             tripleMainText.setText(chatGroup.getGroupName());
         }
 
-        // todo: set recent message text
-        Message recentMessage = null;
+        // set recent message text
+        String recentMessage = null;
 
-        if (chatGroup.getMessages() != null && !chatGroup.getMessages().isEmpty()) {
-            recentMessage = ((Message) chatGroup.getMessages().get(chatGroup.getMessages().size() - 1));
+        if (chatGroup.getRecentMessage() != null && !chatGroup.getRecentMessage().isEmpty()) {
+            recentMessage = (chatGroup.getRecentMessage());
         }
 
         if (recentMessage != null) {
-            tripleSubText.setText(recentMessage.getContent());
+            tripleSubText.setText(recentMessage);
         } else {
             tripleSubText.setText(null);
         }
@@ -270,15 +271,14 @@ public class FriendsListAdapter extends BaseAdapter {
                 .load(avatar)
                 .into(avatarImage);
 
-        Message recentMessage = null;
+        String recentMessage = null;
 
-
-        if (chatGroup.getMessages() != null && !chatGroup.getMessages().isEmpty()) {
-            recentMessage = ((Message) chatGroup.getMessages().get(chatGroup.getMessages().size() - 1));
+        if (chatGroup.getRecentMessage() != null && !chatGroup.getRecentMessage().isEmpty()) {
+            recentMessage = chatGroup.getRecentMessage();
         }
 
         if (recentMessage != null) {
-            subLeftInfoText.setText(recentMessage.getContent());
+            subLeftInfoText.setText(recentMessage);
         } else {
             subLeftInfoText.setText(null);
         }

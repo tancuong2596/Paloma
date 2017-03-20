@@ -40,7 +40,7 @@
         android:textSize="12sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/file_item_full_name_text"
         app:layout_constraintBottom_toBottomOf="@+id/file_item_full_name_text"
-        app:layout_constraintLeft_toRightOf="@+id/file_item_full_name_text"
+        app:layout_constraintRight_toRightOf="parent"
         tools:text="9:00 PM" />
 
     <LinearLayout

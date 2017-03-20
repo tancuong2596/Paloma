@@ -4,6 +4,7 @@ import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by charlie on 2/28/17.
@@ -20,18 +21,19 @@ public class Message {
     private String senderId;
     private int contentType;
     private String content;
-    private long timestamp;
+    private HashMap<String, Object> timestamp;
 
     public Message() {
     }
 
-    public Message(String messageId, String groupChatId, String senderId, int contentType, String content, long timestamp) {
+    public Message(String messageId, String groupChatId, String senderId, int contentType, String content, Map<String, String> timestamp) {
         this.messageId = messageId;
         this.groupChatId = groupChatId;
         this.senderId = senderId;
         this.contentType = contentType;
         this.content = content;
-        this.timestamp = timestamp;
+        this.timestamp = new HashMap<>();
+        this.timestamp.put("date", timestamp);
     }
 
     public String getMessageId() {
@@ -74,16 +76,16 @@ public class Message {
         this.content = content;
     }
 
-    public long getTimestamp() {
+    public HashMap<String, Object> getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(HashMap<String, Object> timestamp) {
         this.timestamp = timestamp;
     }
 
     @Exclude
-    private HashMap<String, Object> toMap() {
+    public HashMap<String, Object> toMap() {
         HashMap<String, Object> map = new HashMap<>();
         map.put("messageId", this.messageId);
         map.put("groupChatId", this.groupChatId);
@@ -92,5 +94,17 @@ public class Message {
         map.put("content", this.content);
         map.put("timestamp", this.timestamp);
         return map;
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageId='" + messageId + '\'' +
+                ", groupChatId='" + groupChatId + '\'' +
+                ", senderId='" + senderId + '\'' +
+                ", contentType=" + contentType +
+                ", content='" + content + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
     }
 }
