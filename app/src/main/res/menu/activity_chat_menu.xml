@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_send_image"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_action_send_photo"
+        android:title="Send Images"/>
+
+    <item
+        android:id="@+id/action_send_file"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_action_send_file"
+        android:title="Send Files"/>
+
+</menu>

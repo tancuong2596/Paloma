@@ -44,7 +44,7 @@
         tools:text="9:00 PM" />
 
     <ImageView
-        android:id="@+id/image_message_content_text"
+        android:id="@+id/image_message_content_image"
         android:layout_width="256dp"
         android:layout_height="0dp"
         android:textColor="@android:color/black"
