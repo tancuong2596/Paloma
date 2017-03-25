@@ -2,6 +2,8 @@ package cit.edu.paloma.adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,14 +32,12 @@ public class MessagesListAdapter extends BaseAdapter {
     private static final HashMap<String, User> cached = new HashMap<>();
     private final Context mContext;
     private final ArrayList<Message> mMessagesList;
-    private final HashMap<String, Integer> mMessageKeyIndexMap;
     private final String mGroupId;
     private ChildEventListener mChildEventListener;
 
     public MessagesListAdapter(@NonNull Context context, String groupId) {
         this.mContext = context;
         this.mMessagesList = new ArrayList<>();
-        this.mMessageKeyIndexMap = new HashMap<>();
         this.mGroupId = groupId;
         setupMessagesChildEventListener();
     }
@@ -48,25 +48,29 @@ public class MessagesListAdapter extends BaseAdapter {
             public void onChildAdded(DataSnapshot dataSnapshot, String prevChildKey) {
                 Message message = dataSnapshot.getValue(Message.class);
 
-                Log.v(TAG, message.toString());
-
                 if (prevChildKey == null) {
                     mMessagesList.add(0, message);
-                    mMessageKeyIndexMap.put(message.getMessageId(), 0);
                 } else {
-                    int prevChildIndex = mMessageKeyIndexMap.get(prevChildKey);
+                    int prevChildIndex = indexOf(prevChildKey);
                     mMessagesList.add(prevChildIndex + 1, message);
-                    mMessageKeyIndexMap.put(message.getMessageId(), prevChildIndex + 1);
                 }
                 notifyDataSetChanged();
             }
 
+            private int indexOf(String prevChildKey) {
+                for (int i = 0; i < mMessagesList.size(); i++) {
+                    if (mMessagesList.get(i).getMessageId().equals(prevChildKey)) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String prevChildKey) {
-                Log.v(TAG, "onChildChanged");
                 Message message = dataSnapshot.getValue(Message.class);
 
-                int childIndex = mMessageKeyIndexMap.get(message.getMessageId());
+                int childIndex = indexOf(message.getMessageId());
                 mMessagesList.set(childIndex, message);
 
                 notifyDataSetChanged();
@@ -76,9 +80,8 @@ public class MessagesListAdapter extends BaseAdapter {
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 Message message = dataSnapshot.getValue(Message.class);
 
-                int childIndex = mMessageKeyIndexMap.get(message.getMessageId());
+                int childIndex = indexOf(message.getMessageId());
                 mMessagesList.remove(childIndex);
-                mMessageKeyIndexMap.remove(message.getMessageId());
 
                 notifyDataSetChanged();
             }
@@ -97,7 +100,7 @@ public class MessagesListAdapter extends BaseAdapter {
         FirebaseUtils
                 .getMessagesRef()
                 .child(mGroupId)
-                .orderByChild("timestamp")
+                .orderByChild("timestamp/date")
                 .addChildEventListener(mChildEventListener);
     }
 
@@ -187,7 +190,7 @@ public class MessagesListAdapter extends BaseAdapter {
 
         textItemSendTimeText.setText(DateTimeUtils.getReadableDateTime((Long) message.getTimestamp().get("date")));
         setUserInfo(message, textItemAvatarImage, textItemFullNameText);
-        textItemMessageContentText.setText(message.getContent());
+        textItemMessageContentText.setText((String) message.getContent().get("content"));
 
         return convertView;
     }
@@ -200,6 +203,20 @@ public class MessagesListAdapter extends BaseAdapter {
             convertView = layoutInflater.inflate(R.layout.image_message_list_view_item, parent, false);
         }
 
+        final ImageView imageItemAvatarImage = (ImageView) convertView.findViewById(R.id.image_item_avatar_image);
+        final TextView imageItemFullNameText = (TextView) convertView.findViewById(R.id.image_item_full_name_text);
+        final TextView imageItemSendTimeText = (TextView) convertView.findViewById(R.id.image_item_send_time_text);
+        ImageView imageItemMessageContentImage = (ImageView) convertView.findViewById(R.id.image_message_content_image);
+
+        setUserInfo(message, imageItemAvatarImage, imageItemFullNameText);
+        imageItemSendTimeText.setText(DateTimeUtils.getReadableDateTime((Long) message.getTimestamp().get("date")));
+
+        HashMap<String, Object> imageContent = message.getContent();
+
+        Picasso
+                .with(mContext)
+                .load((String) imageContent.get("content"))
+                .into(imageItemMessageContentImage);
 
         return convertView;
     }
@@ -212,7 +229,6 @@ public class MessagesListAdapter extends BaseAdapter {
             convertView = layoutInflater.inflate(R.layout.file_message_list_view_item, parent, false);
         }
 
-
         return convertView;
     }
 
@@ -220,7 +236,7 @@ public class MessagesListAdapter extends BaseAdapter {
         FirebaseUtils
                 .getMessagesRef()
                 .child(mGroupId)
-                .orderByChild("timestamp")
+                .orderByChild("timestamp/date")
                 .removeEventListener(mChildEventListener);
     }
 }

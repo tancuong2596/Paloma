@@ -1,11 +1,14 @@
 package cit.edu.paloma.utils;
 
+import android.graphics.Bitmap;
+
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
@@ -13,6 +16,14 @@ import java.io.IOException;
  */
 
 public class ImgurUtils {
+    public static byte[] encodeBitmapToBase64(Bitmap bitmap) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+
+        return baos.toByteArray();
+    }
+
     public static Response uploadBase64Photo(byte[] base64Photo) throws IOException {
         OkHttpClient client = new OkHttpClient();
 

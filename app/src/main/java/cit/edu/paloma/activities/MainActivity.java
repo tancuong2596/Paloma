@@ -47,9 +47,6 @@ public class MainActivity extends AppCompatActivity
     private static final String FRAGMENT_FIND_FRIENDS = "FRAGMENT_FIND_FRIENDS";
     private static final String FRAGMENT_FRIENDS_LIST = "FRAGMENT_FRIENDS_LIST";
 
-    public static final String FRIEND_ACCEPTED = "accepted";
-    public static final String FRIEND_PENDING = "pending";
-
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseUser mFirebaseCurrentUser;
@@ -288,6 +285,13 @@ public class MainActivity extends AppCompatActivity
                         (SuggestedFriendsListFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
                 ArrayList<Object[]> members = fragment.getSelectedMembers();
+                Log.v(TAG, members.toString());
+
+                if (members.isEmpty()) {
+                    mFragmentManager.popBackStack();
+                    return;
+                }
+
                 members.add(new Object[]{mFirebaseCurrentUserRef, mCurrentUser});
 
                 FirebaseUtils.createNewChatGroup(members, null);

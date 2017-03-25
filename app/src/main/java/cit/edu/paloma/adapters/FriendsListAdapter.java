@@ -259,8 +259,8 @@ public class FriendsListAdapter extends BaseAdapter {
         }
 
         for (String key : chatGroup.getMembers().keySet()) {
-            if (!key.equalsIgnoreCase(currentUser.getUid())) {
-                avatar = (String) chatGroup.getMembers().get(key);
+            if (!key.equals(currentUser.getUid())) {
+                avatar = (String) chatGroup.getMembers().get(key); 
                 userId = key;
                 break;
             }

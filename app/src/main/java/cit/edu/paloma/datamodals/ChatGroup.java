@@ -21,6 +21,9 @@ public class ChatGroup {
         this.groupId = groupId;
         this.groupName = groupName;
         this.recentMessage = recentMessage;
+        if (members == null) {
+            members = new HashMap<>();
+        }
         this.members = members;
     }
 
@@ -49,10 +52,16 @@ public class ChatGroup {
     }
 
     public HashMap<String, Object> getMembers() {
+        if (members == null) {
+            members = new HashMap<>();
+        }
         return members;
     }
 
     public void setMembers(HashMap<String, Object> members) {
+        if (members == null) {
+            members = new HashMap<>();
+        }
         this.members = members;
     }
 

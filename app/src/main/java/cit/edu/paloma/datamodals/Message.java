@@ -20,13 +20,13 @@ public class Message {
     private String groupChatId;
     private String senderId;
     private int contentType;
-    private String content;
+    private HashMap<String, Object> content;
     private HashMap<String, Object> timestamp;
 
     public Message() {
     }
 
-    public Message(String messageId, String groupChatId, String senderId, int contentType, String content, Map<String, String> timestamp) {
+    public Message(String messageId, String groupChatId, String senderId, int contentType, HashMap<String, Object> content, Map<String, String> timestamp) {
         this.messageId = messageId;
         this.groupChatId = groupChatId;
         this.senderId = senderId;
@@ -68,11 +68,17 @@ public class Message {
         this.contentType = contentType;
     }
 
-    public String getContent() {
+    public HashMap<String, Object> getContent() {
+        if (content == null) {
+            content = new HashMap<>();
+        }
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(HashMap<String, Object> content) {
+        if (content == null) {
+            content = new HashMap<>();
+        }
         this.content = content;
     }
 
@@ -96,6 +102,7 @@ public class Message {
         return map;
     }
 
+    @Exclude
     @Override
     public String toString() {
         return "Message{" +
@@ -107,4 +114,5 @@ public class Message {
                 ", timestamp=" + timestamp +
                 '}';
     }
+
 }
