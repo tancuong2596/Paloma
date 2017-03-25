@@ -227,7 +227,9 @@ public class FriendsListAdapter extends BaseAdapter {
                         StringBuilder name = new StringBuilder();
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             User user = snapshot.getValue(User.class);
-                            name.append(user.getFullName()).append(", ");
+                            if (members.containsKey(user.getUserId())) {
+                                name.append(user.getFullName()).append(", ");
+                            }
                         }
 
                         int nOthers = members.size() - 3;
