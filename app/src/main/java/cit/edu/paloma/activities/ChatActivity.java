@@ -116,7 +116,6 @@ public class ChatActivity
         mImageUploadProcessDialog = new ProgressDialog(this);
 
         mLoaderManager = getLoaderManager();
-        //mLoaderManager.initLoader(IMAGES_UPLOADING_ID, null, this);
 
         mActionBar = getSupportActionBar();
         if (mActionBar != null) {

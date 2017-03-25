@@ -284,19 +284,20 @@ public class MainActivity extends AppCompatActivity
                 SuggestedFriendsListFragment fragment =
                         (SuggestedFriendsListFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
-                ArrayList<Object[]> members = fragment.getSelectedMembers();
-                Log.v(TAG, members.toString());
+                if (fragment != null) {
+                    ArrayList<Object[]> members = fragment.getSelectedMembers();
 
-                if (members.isEmpty()) {
+                    if (members == null || members.isEmpty()) {
+                        return;
+                    }
+
+                    members.add(new Object[]{mFirebaseCurrentUserRef, mCurrentUser});
+
+                    FirebaseUtils.createNewChatGroup(members, null);
+
                     mFragmentManager.popBackStack();
-                    return;
+                    showSearchBox(false);
                 }
-
-                members.add(new Object[]{mFirebaseCurrentUserRef, mCurrentUser});
-
-                FirebaseUtils.createNewChatGroup(members, null);
-
-                mFragmentManager.popBackStack();
                 break;
             }
         }

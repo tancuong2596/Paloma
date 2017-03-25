@@ -38,14 +38,12 @@ public class FriendsListAdapter extends BaseAdapter {
     private ListView mListView;
     private Context mContext;
     private ArrayList<ChatGroup> mChatGroups;
-    private HashMap<String, Integer> mKeyMap;
 
     public FriendsListAdapter(Context context, ListView listView) {
         mContext = context;
         mListView = listView;
 
         mChatGroups = new ArrayList<>();
-        mKeyMap = new HashMap<>();
 
         setupChatGroupsChildEventListener();
     }
@@ -60,15 +58,16 @@ public class FriendsListAdapter extends BaseAdapter {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String prevChildName) {
                             ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
-                            String childName = dataSnapshot.getKey();
+
+                            if (!chatGroup.getMembers().containsKey(firebaseCurrentUser.getUid())) {
+                                return;
+                            }
 
                             if (prevChildName == null) {
                                 mChatGroups.add(0, chatGroup);
-                                mKeyMap.put(childName, 0);
                             } else {
-                                Integer prevChildIndex = mKeyMap.get(prevChildName);
+                                Integer prevChildIndex = indexOf(prevChildName);
                                 mChatGroups.add(prevChildIndex + 1, chatGroup);
-                                mKeyMap.put(childName, prevChildIndex + 1);
                             }
 
                             notifyDataSetChanged();
@@ -77,21 +76,39 @@ public class FriendsListAdapter extends BaseAdapter {
                         @Override
                         public void onChildChanged(DataSnapshot dataSnapshot, String prevChildName) {
                             ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
+
+                            if (!chatGroup.getMembers().containsKey(firebaseCurrentUser.getUid())) {
+                                return;
+                            }
+
                             String childName = dataSnapshot.getKey();
 
-                            Integer childIndex = mKeyMap.get(childName);
+                            Integer childIndex = indexOf(childName);
                             mChatGroups.set(childIndex, chatGroup);
 
                             notifyDataSetChanged();
                         }
 
+                        private Integer indexOf(String childName) {
+                            for (int i = 0; i < mChatGroups.size(); i++) {
+                                if (mChatGroups.get(i).getGroupId().equals(childName)) {
+                                    return i;
+                                }
+                            }
+                            return -1;
+                        }
+
                         @Override
                         public void onChildRemoved(DataSnapshot dataSnapshot) {
+                            ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
+                            if (!chatGroup.getMembers().containsKey(firebaseCurrentUser.getUid())) {
+                                return;
+                            }
+
                             String childName = dataSnapshot.getKey();
 
-                            int childIndex = mKeyMap.get(childName);
+                            int childIndex = indexOf(childName);
                             mChatGroups.remove(childIndex);
-                            mKeyMap.remove(childName);
 
                             notifyDataSetChanged();
                         }

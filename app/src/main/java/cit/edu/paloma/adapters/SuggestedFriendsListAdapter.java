@@ -24,7 +24,7 @@ public class SuggestedFriendsListAdapter extends ArrayAdapter<Object[]> {
     private static final String TAG = SuggestedFriendsListAdapter.class.getSimpleName();
     private static final String MEMBER_REMOVE = "remove";
     private static final String MEMBER_ADD = "add";
-    private HashMap<String, Integer> mMemberIndexMap;
+    private HashMap<String, Object[]> mMemberIndexMap;
 
     public SuggestedFriendsListAdapter(Context context) {
         super(context, 0, new ArrayList<Object[]>());
@@ -37,8 +37,8 @@ public class SuggestedFriendsListAdapter extends ArrayAdapter<Object[]> {
     public ArrayList<Object[]> getMembers() {
         ArrayList<Object[]> members = new ArrayList<>();
         for (String uid : mMemberIndexMap.keySet()) {
-            int index = mMemberIndexMap.get(uid);
-            members.add(getItem(index));
+            Object[] item = mMemberIndexMap.get(uid);
+            members.add(item);
         }
         return members;
     }
@@ -101,7 +101,7 @@ public class SuggestedFriendsListAdapter extends ArrayAdapter<Object[]> {
             public void onClick(View view) {
                 if (addFriendButton.getText().toString().equalsIgnoreCase(MEMBER_ADD)) {
                     addFriendButton.setText(MEMBER_REMOVE);
-                    mMemberIndexMap.put(friend.getUserId(), position);
+                    mMemberIndexMap.put(friend.getUserId(), getItem(position));
                 } else {
                     addFriendButton.setText(MEMBER_ADD);
                     mMemberIndexMap.remove(friend.getUserId());

@@ -1,6 +1,7 @@
 package cit.edu.paloma.utils;
 
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -103,6 +104,7 @@ public class FirebaseUtils {
         for (Object[] member : members) {
             User user = (User) member[1];
             groupMembersUid.put(user.getUserId(), user.getAvatar());
+            Log.v(TAG, String.format("%s\n", user.getUserId()));
         }
 
         ChatGroup chatGroup = new ChatGroup(
