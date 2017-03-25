@@ -41,12 +41,12 @@
         android:id="@+id/triple_main_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="24dp"
+        android:layout_marginLeft="7dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:textColor="@android:color/black"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toRightOf="@id/user2_avatar_image"
+        android:maxLines="2"
         tools:text="Brad Pitt, Launer, Sam" />
 
     <TextView

@@ -37,7 +37,7 @@
         android:textSize="12sp"
         app:layout_constraintLeft_toLeftOf="@+id/usr_main_left_info_text"
         app:layout_constraintTop_toBottomOf="@+id/usr_main_left_info_text"
-        android:maxLines="2"
+        android:maxLines="1"
         tools:text="brad@gmail.com" />
 
     <View
