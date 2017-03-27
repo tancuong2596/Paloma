@@ -2,20 +2,20 @@ package cit.edu.paloma.adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
-import android.support.constraint.ConstraintSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -30,6 +30,7 @@ import cit.edu.paloma.utils.FirebaseUtils;
 public class MessagesListAdapter extends BaseAdapter {
     private static final String TAG = MessagesListAdapter.class.getSimpleName();
     private static final HashMap<String, User> cached = new HashMap<>();
+    private static final int THUMBNAILS_IMAGE_WIDTH = 512;
     private final Context mContext;
     private final ArrayList<Message> mMessagesList;
     private final String mGroupId;
@@ -206,17 +207,37 @@ public class MessagesListAdapter extends BaseAdapter {
         final ImageView imageItemAvatarImage = (ImageView) convertView.findViewById(R.id.image_item_avatar_image);
         final TextView imageItemFullNameText = (TextView) convertView.findViewById(R.id.image_item_full_name_text);
         final TextView imageItemSendTimeText = (TextView) convertView.findViewById(R.id.image_item_send_time_text);
-        ImageView imageItemMessageContentImage = (ImageView) convertView.findViewById(R.id.image_message_content_image);
+        final ImageView imageItemMessageContentImage = (ImageView) convertView.findViewById(R.id.image_message_content_image);
+        final ProgressBar progressBar = (ProgressBar) convertView.findViewById(R.id.image_message_progress_bar);
 
         setUserInfo(message, imageItemAvatarImage, imageItemFullNameText);
         imageItemSendTimeText.setText(DateTimeUtils.getReadableDateTime((Long) message.getTimestamp().get("date")));
 
         HashMap<String, Object> imageContent = message.getContent();
+        int imageWidth = Integer.parseInt(imageContent.get("width").toString());
+        int imageHeight = Integer.parseInt(imageContent.get("height").toString());
+        double ratio = (double) imageHeight / imageWidth;
 
+        imageItemMessageContentImage.getLayoutParams().height = (int) (THUMBNAILS_IMAGE_WIDTH * ratio);
+        imageItemMessageContentImage.getLayoutParams().width = THUMBNAILS_IMAGE_WIDTH;
+
+        imageItemMessageContentImage.requestLayout();
+
+        progressBar.setVisibility(View.VISIBLE);
         Picasso
                 .with(mContext)
                 .load((String) imageContent.get("content"))
-                .into(imageItemMessageContentImage);
+                .into(imageItemMessageContentImage, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        progressBar.setVisibility(View.INVISIBLE);
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+                });
 
         return convertView;
     }

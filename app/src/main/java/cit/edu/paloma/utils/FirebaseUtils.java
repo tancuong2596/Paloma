@@ -63,7 +63,7 @@ public class FirebaseUtils {
         if (firebaseCurrentUser != null) {
             recentMessage.append(firebaseCurrentUser.getDisplayName());
             if (messageContent.containsKey("content")) {
-                recentMessage.append(":").append(messageContent.get("content"));
+                recentMessage.append(": ").append(messageContent.get("content"));
             }
         }
 
@@ -123,4 +123,6 @@ public class FirebaseUtils {
 
         return chatGroupRef;
     }
+
+
 }
