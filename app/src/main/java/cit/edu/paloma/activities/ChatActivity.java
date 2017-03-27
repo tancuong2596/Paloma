@@ -13,8 +13,6 @@ import android.graphics.Bitmap;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -29,10 +27,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DatabaseException;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ServerValue;
 import com.squareup.okhttp.Response;
 
@@ -42,7 +36,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.Message;
@@ -64,7 +57,8 @@ public class ChatActivity
 
     private static final int ACTION_REQUEST_GALLERY = 0;
     private static final int ACTION_REQUEST_CAMERA = 1;
-    private static final int IMAGES_UPLOADING_ID = 0;
+
+    private static final int LOADER_IMAGES_UPLOADING_ID = 0;
 
     private Button mSendButton;
     private EditText mMessageEdit;
@@ -242,7 +236,7 @@ public class ChatActivity
         if (!bitmaps.isEmpty()) {
             Bundle bundle = new Bundle();
             bundle.putParcelableArrayList("bitmaps", bitmaps);
-            mLoaderManager.restartLoader(IMAGES_UPLOADING_ID, bundle, this).forceLoad();
+            mLoaderManager.restartLoader(LOADER_IMAGES_UPLOADING_ID, bundle, this).forceLoad();
         }
     }
 
@@ -370,7 +364,7 @@ public class ChatActivity
     @Override
     public void onLoadFinished(Loader<Object> loader, Object data) {
         switch (loader.getId()) {
-            case IMAGES_UPLOADING_ID:
+            case LOADER_IMAGES_UPLOADING_ID:
                 mImageUploadProcessDialog.hide();
                 ArrayList<HashMap<String, Object>> uploadedImagesLinks = (ArrayList<HashMap<String, Object>>) data;
                 for (HashMap<String, Object> imageLink : uploadedImagesLinks) {
