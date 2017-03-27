@@ -361,6 +361,7 @@ public class ChatActivity
                         imageContent.put("content", link);
                         imageContent.put("height", bitmap.getHeight());
                         imageContent.put("width", bitmap.getWidth());
+                        imageContent.put("sender", getIntent().getStringExtra(PARAM_CURRENT_USER_ID));
                         uploadedImagesLinks.add(imageContent);
                     } catch (Exception e) {
                     }
