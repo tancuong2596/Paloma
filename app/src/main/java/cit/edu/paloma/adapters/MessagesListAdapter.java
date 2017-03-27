@@ -2,6 +2,7 @@ package cit.edu.paloma.adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -235,7 +236,8 @@ public class MessagesListAdapter extends BaseAdapter {
 
                     @Override
                     public void onError() {
-
+                        progressBar.setVisibility(View.INVISIBLE);
+                        imageItemMessageContentImage.setImageDrawable(ContextCompat.getDrawable(mContext, R.mipmap.ic_failed));
                     }
                 });
 
