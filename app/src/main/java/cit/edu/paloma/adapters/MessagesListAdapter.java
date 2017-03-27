@@ -31,7 +31,7 @@ import cit.edu.paloma.utils.FirebaseUtils;
 public class MessagesListAdapter extends BaseAdapter {
     private static final String TAG = MessagesListAdapter.class.getSimpleName();
     private static final HashMap<String, User> cached = new HashMap<>();
-    private static final int THUMBNAILS_IMAGE_WIDTH = 512;
+    private static final int THUMBNAILS_IMAGE_WIDTH = 256;
     private final Context mContext;
     private final ArrayList<Message> mMessagesList;
     private final String mGroupId;

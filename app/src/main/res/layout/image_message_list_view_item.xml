@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
-        android:textSize="12sp"
+        android:textSize="11sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/image_item_full_name_text"
         app:layout_constraintBottom_toBottomOf="@+id/image_item_full_name_text"
         app:layout_constraintRight_toRightOf="parent"
