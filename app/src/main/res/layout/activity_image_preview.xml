@@ -14,7 +14,7 @@
             android:id="@+id/preview_content_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@mipmap/large_image_placeholder"/>
+            tools:src="@mipmap/large_image_placeholder"/>
 
     </ScrollView>
 

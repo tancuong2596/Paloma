@@ -56,13 +56,20 @@
         <activity
             android:name=".activities.ChatActivity"
             android:theme="@style/ChatActivityTheme"
-            android:parentActivityName=".activities.MainActivity">
+            android:parentActivityName=".activities.MainActivity"
+            android:launchMode="singleTop">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.MainActivity" />
         </activity>
 
         <activity
             android:name=".activities.ImagePreviewActivity"
             android:theme="@style/ChatActivityTheme"
             android:parentActivityName=".activities.ChatActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.ChatActivity" />
         </activity>
     </application>
 

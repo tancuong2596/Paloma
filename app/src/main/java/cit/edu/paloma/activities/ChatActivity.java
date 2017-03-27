@@ -22,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.TimerTask;
 
 import cit.edu.paloma.R;
+import cit.edu.paloma.adapters.MessagesListAdapter;
 import cit.edu.paloma.datamodals.Message;
 import cit.edu.paloma.utils.FirebaseUtils;
 import cit.edu.paloma.utils.ImgurUtils;
@@ -47,7 +49,7 @@ import static android.provider.MediaStore.ACTION_IMAGE_CAPTURE;
 
 public class ChatActivity
         extends AppCompatActivity
-        implements View.OnClickListener, LoaderManager.LoaderCallbacks<Object> {
+        implements View.OnClickListener, LoaderManager.LoaderCallbacks<Object>, AdapterView.OnItemClickListener {
     private static final String TAG = ChatActivity.class.getSimpleName();
 
     public static final String PARAM_ACTION_BAR_TITLE = "PARAM_ACTION_BAR_TITLE";
@@ -74,6 +76,13 @@ public class ChatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         initViews();
+        Log.v(TAG, "onCreate");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.v(TAG, "onResume");
     }
 
     private void initViews() {
@@ -88,6 +97,7 @@ public class ChatActivity
 
         String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
         mMessagesList.setAdapter(MessagesAdapterUtils.findAdapterByGroupId(groupId, this));
+        mMessagesList.setOnItemClickListener(this);
 
         mGroupChatRenameDialog = new AlertDialog
                 .Builder(this, R.style.DialogTheme)
@@ -388,5 +398,29 @@ public class ChatActivity
     @Override
     public void onLoaderReset(Loader<Object> loader) {
 
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        MessagesListAdapter adapter = (MessagesListAdapter) parent.getAdapter();
+        Message item = adapter.getItem(position);
+
+        if (item.getContentType() == Message.IMAGE) {
+            HashMap<String, Object> imageContent = item.getContent();
+
+            Intent intent = new Intent(ChatActivity.this, ImagePreviewActivity.class);
+
+            Bundle bundle = new Bundle();
+            bundle.putString(ImagePreviewActivity.PARAM_ACTION_BAR_TITLE, "Preview Image");
+            bundle.putString(ImagePreviewActivity.PARAM_IMAGE_NAME, imageContent.containsKey("title") ? imageContent.get("title").toString() : "unknown");
+            bundle.putString(ImagePreviewActivity.PARAM_IMAGE_URL, imageContent.get("content").toString());
+            bundle.putInt(ImagePreviewActivity.PARAM_IMAGE_WIDTH, Integer.parseInt(imageContent.get("width").toString()));
+            bundle.putInt(ImagePreviewActivity.PARAM_IMAGE_HEIGHT, Integer.parseInt(imageContent.get("height").toString()));
+            bundle.putString(ImagePreviewActivity.PARAM_IMAGE_SENDER_ID, item.getSenderId());
+
+            intent.putExtras(bundle);
+
+            startActivity(intent);
+        }
     }
 }
