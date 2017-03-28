@@ -5,11 +5,13 @@ import android.app.LoaderManager;
 import android.app.ProgressDialog;
 import android.content.AsyncTaskLoader;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -60,8 +62,10 @@ public class ChatActivity
 
     private static final int ACTION_REQUEST_GALLERY = 0;
     private static final int ACTION_REQUEST_CAMERA = 1;
+    private static final int ACTION_REQUEST_FILE = 2;
 
     private static final int LOADER_IMAGES_UPLOADING_ID = 0;
+    private static final int LOADER_FILES_UPLOADING_ID = 1;
 
     private Button mSendButton;
     private EditText mMessageEdit;
@@ -77,13 +81,11 @@ public class ChatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         initViews();
-        Log.v(TAG, "onCreate");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.v(TAG, "onResume");
     }
 
     private void initViews() {
@@ -213,6 +215,7 @@ public class ChatActivity
         }
 
         ArrayList<Bitmap> bitmaps = new ArrayList<>();
+        ArrayList<Uri> files = new ArrayList<>();
 
         switch (requestCode) {
             case ACTION_REQUEST_CAMERA:
@@ -242,12 +245,29 @@ public class ChatActivity
                     }
                 }
                 break;
+            case ACTION_REQUEST_FILE:
+                if (data.getClipData() != null) {
+                    ClipData clipData = data.getClipData();
+                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                        ClipData.Item item = clipData.getItemAt(i);
+                        files.add(item.getUri());
+                    }
+                } else if (data.getData() != null) {
+                    files.add(data.getData());
+                }
+                break;
         }
 
         if (!bitmaps.isEmpty()) {
             Bundle bundle = new Bundle();
             bundle.putParcelableArrayList("bitmaps", bitmaps);
             mLoaderManager.restartLoader(LOADER_IMAGES_UPLOADING_ID, bundle, this).forceLoad();
+        }
+
+        if (!files.isEmpty()) {
+            Bundle bundle = new Bundle();
+            bundle.putParcelableArrayList("filesUris", files);
+            mLoaderManager.restartLoader(LOADER_FILES_UPLOADING_ID, bundle, this).forceLoad();
         }
     }
 
@@ -263,12 +283,25 @@ public class ChatActivity
                 onBackPressed();
                 return true;
             case R.id.action_send_file:
+                chooseFileSource();
                 break;
             case R.id.action_send_image:
                 chooseImageSource();
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void chooseFileSource() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.setType("file/*");
+
+        if (ensurePermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            Intent chooser = Intent.createChooser(intent, "Choose a file");
+            startActivityForResult(chooser, ACTION_REQUEST_FILE);
+        }
     }
 
     private void scrollToEnd() {
@@ -311,66 +344,114 @@ public class ChatActivity
         }
     }
 
+    private class ImagesUploadingLoader extends AsyncTaskLoader<Object> {
+
+        private final Bundle mArgs;
+
+        public ImagesUploadingLoader(Context context, Bundle args) {
+            super(context);
+            mArgs = args;
+        }
+
+        @Override
+        protected void onStartLoading() {
+            super.onStartLoading();
+            mImageUploadProcessDialog.setMessage("Uploading chosen images...");
+            mImageUploadProcessDialog.setIndeterminate(true);
+            mImageUploadProcessDialog.show();
+            forceLoad();
+        }
+
+        private String uploadImageToImgur(@NonNull Bitmap bitmap) throws Exception {
+            String imageLink = null;
+
+            Response response =
+                    ImgurUtils.uploadBase64Photo(ImgurUtils.encodeBitmapToBase64(bitmap));
+
+            if (response.isSuccessful()) {
+                JSONObject data = new JSONObject(response.body().string()).getJSONObject("data");
+                imageLink = data.getString("link");
+            } else {
+                throw new Exception("Cannot upload the image");
+            }
+
+            return imageLink;
+        }
+
+
+        @Override
+        public Object loadInBackground() {
+            ArrayList<HashMap<String, Object>> uploadedImagesLinks = new ArrayList<>();
+            ArrayList<Bitmap> bitmaps = null;
+
+            if (mArgs != null) {
+                bitmaps = mArgs.getParcelableArrayList("bitmaps");
+            }
+
+            if (bitmaps == null) {
+                return null;
+            }
+
+            for (Bitmap bitmap : bitmaps) {
+                String link = null;
+                try {
+                    link = uploadImageToImgur(bitmap);
+                    HashMap<String, Object> imageContent = new HashMap<>();
+                    imageContent.put("content", link);
+                    imageContent.put("height", bitmap.getHeight());
+                    imageContent.put("width", bitmap.getWidth());
+                    imageContent.put("sender", getIntent().getStringExtra(PARAM_CURRENT_USER_ID));
+                    uploadedImagesLinks.add(imageContent);
+                } catch (Exception e) {
+                }
+            }
+
+            return uploadedImagesLinks;
+        }
+    }
+
+    private class FilesUploadingLoader extends AsyncTaskLoader<Object> {
+
+        private final Bundle mArgs;
+
+        public FilesUploadingLoader(Context context, Bundle args) {
+            super(context);
+            mArgs = args;
+        }
+
+        @Override
+        protected void onStartLoading() {
+            super.onStartLoading();
+            mImageUploadProcessDialog.setMessage("Uploading chosen files...");
+            mImageUploadProcessDialog.setIndeterminate(true);
+            mImageUploadProcessDialog.show();
+            forceLoad();
+        }
+
+        private String uploadFileToFireabse(@NonNull Uri uri) throws Exception {
+            // todo: implement
+            return null;
+        }
+
+
+        @Override
+        public Object loadInBackground() {
+            // todo: implement
+            return null;
+        }
+    }
+
+
     @Override
     public Loader<Object> onCreateLoader(int id, final Bundle args) {
-        return new AsyncTaskLoader<Object>(this) {
-
-            @Override
-            protected void onStartLoading() {
-                super.onStartLoading();
-                mImageUploadProcessDialog.setMessage("Uploading chosen images...");
-                mImageUploadProcessDialog.setIndeterminate(true);
-                mImageUploadProcessDialog.show();
-                forceLoad();
-            }
-
-            private String uploadImageToImgur(@NonNull Bitmap bitmap) throws Exception {
-                String imageLink = null;
-
-                Response response =
-                        ImgurUtils.uploadBase64Photo(ImgurUtils.encodeBitmapToBase64(bitmap));
-
-                if (response.isSuccessful()) {
-                    JSONObject data = new JSONObject(response.body().string()).getJSONObject("data");
-                    imageLink = data.getString("link");
-                } else {
-                    throw new Exception("Cannot upload the image");
-                }
-
-                return imageLink;
-            }
-
-
-            @Override
-            public Object loadInBackground() {
-                ArrayList<HashMap<String, Object>> uploadedImagesLinks = new ArrayList<>();
-                ArrayList<Bitmap> bitmaps = null;
-
-                if (args != null) {
-                    bitmaps = args.getParcelableArrayList("bitmaps");
-                }
-
-                if (bitmaps == null) {
-                    return null;
-                }
-
-                for (Bitmap bitmap : bitmaps) {
-                    String link = null;
-                    try {
-                        link = uploadImageToImgur(bitmap);
-                        HashMap<String, Object> imageContent = new HashMap<>();
-                        imageContent.put("content", link);
-                        imageContent.put("height", bitmap.getHeight());
-                        imageContent.put("width", bitmap.getWidth());
-                        imageContent.put("sender", getIntent().getStringExtra(PARAM_CURRENT_USER_ID));
-                        uploadedImagesLinks.add(imageContent);
-                    } catch (Exception e) {
-                    }
-                }
-
-                return uploadedImagesLinks;
-            }
-        };
+        switch (id) {
+            case LOADER_IMAGES_UPLOADING_ID:
+                return new ImagesUploadingLoader(this, args);
+            case LOADER_FILES_UPLOADING_ID:
+                return new FilesUploadingLoader(this, args);
+            default:
+                return null;
+        }
     }
 
     @Override
@@ -378,7 +459,8 @@ public class ChatActivity
         switch (loader.getId()) {
             case LOADER_IMAGES_UPLOADING_ID:
                 mImageUploadProcessDialog.hide();
-                ArrayList<HashMap<String, Object>> uploadedImagesLinks = (ArrayList<HashMap<String, Object>>) data;
+                ArrayList<HashMap<String, Object>> uploadedImagesLinks =
+                        (ArrayList<HashMap<String, Object>>) data;
                 for (HashMap<String, Object> imageLink : uploadedImagesLinks) {
 
                     Message newMessage = new Message(
@@ -394,6 +476,10 @@ public class ChatActivity
                             .sendMessage(newMessage, null);
                 }
                 break;
+            case LOADER_FILES_UPLOADING_ID:
+                mImageUploadProcessDialog.hide();
+
+                break;
         }
     }
 
@@ -408,9 +494,14 @@ public class ChatActivity
         Message item = adapter.getItem(position);
         HashMap<String, Object> content = item.getContent();
 
-        if (item.getContentType() == Message.IMAGE) {
-            WebView webView = new WebView(this);
-            webView.loadUrl(content.get("content").toString());
+        switch (item.getContentType()) {
+            case Message.IMAGE:
+                WebView webView = new WebView(this);
+                webView.loadUrl(content.get("content").toString());
+                break;
+            case Message.FILE:
+                // todo: implement
+                break;
         }
     }
 }
