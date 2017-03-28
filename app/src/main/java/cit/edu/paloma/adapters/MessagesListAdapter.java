@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -140,16 +141,22 @@ public class MessagesListAdapter extends BaseAdapter {
         }
     }
 
-    private void setUserInfo(final Message message, final ImageView textItemAvatarImage, final TextView textItemFullNameText) {
+    private void setUserInfo(final Message message,
+                             final ImageView avatarImage,
+                             final TextView fullNameText,
+                             TextView sendTimeText) {
+
+        sendTimeText.setText(DateTimeUtils.getReadableDateTime((Long) message.getTimestamp().get("date")));
+
         if (cached.containsKey(message.getSenderId())) {
             User user = cached.get(message.getSenderId());
 
             Picasso
                     .with(mContext)
                     .load(user.getAvatar())
-                    .into(textItemAvatarImage);
+                    .into(avatarImage);
 
-            textItemFullNameText.setText(user.getFullName());
+            fullNameText.setText(user.getFullName());
         } else {
             FirebaseUtils
                     .getUsersRef()
@@ -163,9 +170,9 @@ public class MessagesListAdapter extends BaseAdapter {
                                 Picasso
                                         .with(mContext)
                                         .load(user.getAvatar())
-                                        .into(textItemAvatarImage);
+                                        .into(avatarImage);
 
-                                textItemFullNameText.setText(user.getFullName());
+                                fullNameText.setText(user.getFullName());
 
                                 cached.put(message.getSenderId(), user);
                             }
@@ -192,8 +199,8 @@ public class MessagesListAdapter extends BaseAdapter {
         final TextView textItemSendTimeText = (TextView) convertView.findViewById(R.id.text_item_send_time_text);
         TextView textItemMessageContentText = (TextView) convertView.findViewById(R.id.text_item_message_content_text);
 
-        textItemSendTimeText.setText(DateTimeUtils.getReadableDateTime((Long) message.getTimestamp().get("date")));
-        setUserInfo(message, textItemAvatarImage, textItemFullNameText);
+        setUserInfo(message, textItemAvatarImage, textItemFullNameText, textItemSendTimeText);
+
         textItemMessageContentText.setText((String) message.getContent().get("content"));
 
         return convertView;
@@ -213,8 +220,7 @@ public class MessagesListAdapter extends BaseAdapter {
         final ImageView imageItemMessageContentImage = (ImageView) convertView.findViewById(R.id.image_message_content_image);
         final ProgressBar progressBar = (ProgressBar) convertView.findViewById(R.id.image_message_progress_bar);
 
-        setUserInfo(message, imageItemAvatarImage, imageItemFullNameText);
-        imageItemSendTimeText.setText(DateTimeUtils.getReadableDateTime((Long) message.getTimestamp().get("date")));
+        setUserInfo(message, imageItemAvatarImage, imageItemFullNameText, imageItemSendTimeText);
 
         HashMap<String, Object> imageContent = message.getContent();
         int imageWidth = Integer.parseInt(imageContent.get("width").toString());
@@ -253,6 +259,16 @@ public class MessagesListAdapter extends BaseAdapter {
         if (convertView == null || convertView.findViewById(R.id.file_item_avatar_image) == null) {
             convertView = layoutInflater.inflate(R.layout.file_message_list_view_item, parent, false);
         }
+
+        ImageView fileItemAvatarImage = (ImageView) convertView.findViewById(R.id.file_item_avatar_image);
+        TextView fileItemFullNameText = (TextView) convertView.findViewById(R.id.file_item_full_name_text);
+        TextView fileItemSendTimeText = (TextView) convertView.findViewById(R.id.file_item_send_time_text);
+        LinearLayout fileItemFileLinkLayout = (LinearLayout) convertView.findViewById(R.id.file_item_file_link_layout);
+        TextView fileItemLinkText = (TextView) convertView.findViewById(R.id.file_item_link_text);
+
+        setUserInfo(message, fileItemAvatarImage, fileItemFullNameText, fileItemSendTimeText);
+
+        fileItemLinkText.setText(message.getContent().get("content").toString());
 
         return convertView;
     }
