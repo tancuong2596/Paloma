@@ -268,7 +268,7 @@ public class MessagesListAdapter extends BaseAdapter {
 
         setUserInfo(message, fileItemAvatarImage, fileItemFullNameText, fileItemSendTimeText);
 
-        fileItemLinkText.setText(message.getContent().get("content").toString());
+        fileItemLinkText.setText(message.getContent().get("filename").toString());
 
         return convertView;
     }

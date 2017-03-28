@@ -50,7 +50,7 @@
         android:orientation="horizontal"
         app:layout_constraintLeft_toLeftOf="@id/file_item_full_name_text"
         app:layout_constraintTop_toBottomOf="@id/file_item_full_name_text"
-        android:background="#ceefff"
+        android:background="#a2bac6"
         android:padding="8dp"
         android:layout_marginTop="4dp">
 

@@ -283,13 +283,14 @@ public class ChatActivity
     }
 
     private void uploadFilesToFirebase(ArrayList<Uri> files) {
-        for (Uri file : files) {
+        for (final Uri file : files) {
             StorageReference storage = FirebaseStorage
                     .getInstance()
                     .getReference();
 
             final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
             final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
+            final String[] fileBread = file.getPath().split("/");
             String uniqueName = groupId + userId + file.hashCode();
 
             StorageReference fileRef = storage.child(uniqueName);
@@ -305,6 +306,7 @@ public class ChatActivity
                                 HashMap<String, Object> content = new HashMap<>();
                                 // noinspection VisibleForTests
                                 content.put("content", taskSnapshot.getDownloadUrl().toString());
+                                content.put("filename", fileBread[fileBread.length - 1]);
                                 FirebaseUtils
                                         .sendMessage(new Message(
                                                 "",
