@@ -22,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -405,8 +406,11 @@ public class ChatActivity
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         MessagesListAdapter adapter = (MessagesListAdapter) parent.getAdapter();
         Message item = adapter.getItem(position);
+        HashMap<String, Object> content = item.getContent();
 
         if (item.getContentType() == Message.IMAGE) {
+            WebView webView = new WebView(this);
+            webView.loadUrl(content.get("content").toString());
         }
     }
 }
