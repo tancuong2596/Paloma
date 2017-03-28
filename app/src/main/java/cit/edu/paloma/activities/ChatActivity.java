@@ -15,6 +15,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -32,12 +33,22 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.squareup.okhttp.Response;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TimerTask;
@@ -273,6 +284,41 @@ public class ChatActivity
 
     private void uploadFilesToFirebase(ArrayList<Uri> files) {
         for (Uri file : files) {
+            StorageReference storage = FirebaseStorage
+                    .getInstance()
+                    .getReference();
+
+            final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+            final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
+            String uniqueName = groupId + userId + file.hashCode();
+
+            StorageReference fileRef = storage.child(uniqueName);
+            InputStream is = null;
+
+            try {
+                is = new FileInputStream(new File(file.getPath()));
+                fileRef
+                        .putStream(is)
+                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                HashMap<String, Object> content = new HashMap<>();
+                                // noinspection VisibleForTests
+                                content.put("content", taskSnapshot.getDownloadUrl().toString());
+                                FirebaseUtils
+                                        .sendMessage(new Message(
+                                                "",
+                                                groupId,
+                                                userId,
+                                                Message.FILE,
+                                                content,
+                                                ServerValue.TIMESTAMP
+                                        ), null);
+                            }
+                        });
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
 
         }
     }
