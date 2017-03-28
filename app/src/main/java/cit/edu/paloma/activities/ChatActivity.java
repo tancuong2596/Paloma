@@ -407,21 +407,6 @@ public class ChatActivity
         Message item = adapter.getItem(position);
 
         if (item.getContentType() == Message.IMAGE) {
-            HashMap<String, Object> imageContent = item.getContent();
-
-            Intent intent = new Intent(ChatActivity.this, ImagePreviewActivity.class);
-
-            Bundle bundle = new Bundle();
-            bundle.putString(ImagePreviewActivity.PARAM_ACTION_BAR_TITLE, "Preview Image");
-            bundle.putString(ImagePreviewActivity.PARAM_IMAGE_NAME, imageContent.containsKey("title") ? imageContent.get("title").toString() : "unknown");
-            bundle.putString(ImagePreviewActivity.PARAM_IMAGE_URL, imageContent.get("content").toString());
-            bundle.putInt(ImagePreviewActivity.PARAM_IMAGE_WIDTH, Integer.parseInt(imageContent.get("width").toString()));
-            bundle.putInt(ImagePreviewActivity.PARAM_IMAGE_HEIGHT, Integer.parseInt(imageContent.get("height").toString()));
-            bundle.putString(ImagePreviewActivity.PARAM_IMAGE_SENDER_ID, item.getSenderId());
-
-            intent.putExtras(bundle);
-
-            startActivity(intent);
         }
     }
 }
