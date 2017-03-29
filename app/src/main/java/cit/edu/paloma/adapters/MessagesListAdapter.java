@@ -1,6 +1,9 @@
 package cit.edu.paloma.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -13,15 +16,31 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.Message;
@@ -31,7 +50,8 @@ import cit.edu.paloma.utils.FirebaseUtils;
 
 public class MessagesListAdapter extends BaseAdapter {
     private static final String TAG = MessagesListAdapter.class.getSimpleName();
-    private static final HashMap<String, User> cached = new HashMap<>();
+    private static final ConcurrentHashMap<String, User> cached = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, File> cachedImages = new ConcurrentHashMap<>();
     private static final int THUMBNAILS_IMAGE_WIDTH = 256;
 
     private final Context mContext;
@@ -206,6 +226,27 @@ public class MessagesListAdapter extends BaseAdapter {
         return convertView;
     }
 
+    public static int calculateInSampleSize(int width, int height, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
+
+
     private View getImageMessageView(Message message, View convertView, ViewGroup parent) {
         LayoutInflater layoutInflater =
                 (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -227,27 +268,68 @@ public class MessagesListAdapter extends BaseAdapter {
         int imageHeight = Integer.parseInt(imageContent.get("height").toString());
         double ratio = (double) imageHeight / imageWidth;
 
-        imageItemMessageContentImage.getLayoutParams().height = (int) (THUMBNAILS_IMAGE_WIDTH * ratio);
-        imageItemMessageContentImage.getLayoutParams().width = THUMBNAILS_IMAGE_WIDTH;
+        int newImageHeight = (int) (THUMBNAILS_IMAGE_WIDTH * ratio);
+        int newImageWidth = THUMBNAILS_IMAGE_WIDTH;
 
+        imageItemMessageContentImage.getLayoutParams().height = newImageHeight;
+        imageItemMessageContentImage.getLayoutParams().width = newImageWidth;
         imageItemMessageContentImage.requestLayout();
 
-        progressBar.setVisibility(View.VISIBLE);
-        Picasso
-                .with(mContext)
-                .load((String) imageContent.get("content"))
-                .into(imageItemMessageContentImage, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        progressBar.setVisibility(View.INVISIBLE);
-                    }
+        final String url = imageContent.get("content").toString();
 
-                    @Override
-                    public void onError() {
-                        progressBar.setVisibility(View.INVISIBLE);
-                        imageItemMessageContentImage.setImageDrawable(ContextCompat.getDrawable(mContext, R.mipmap.ic_failed));
-                    }
-                });
+        final BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inSampleSize = calculateInSampleSize(imageWidth, imageHeight, newImageWidth, newImageHeight);
+
+        if (cachedImages.containsKey(url)) {
+            progressBar.setVisibility(View.VISIBLE);
+            imageItemMessageContentImage.setVisibility(View.INVISIBLE);
+            Picasso
+                    .with(mContext)
+                    .load(cachedImages.get(url))
+                    .into(imageItemMessageContentImage, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            progressBar.setVisibility(View.INVISIBLE);
+                            imageItemMessageContentImage.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onError() {
+                            progressBar.setVisibility(View.INVISIBLE);
+                            imageItemMessageContentImage.setVisibility(View.VISIBLE);
+                        }
+                    });
+        } else {
+            try {
+                progressBar.setVisibility(View.VISIBLE);
+                imageItemMessageContentImage.setVisibility(View.INVISIBLE);
+                final File file = File.createTempFile(UUID.randomUUID().toString(), "jpeg", mContext.getCacheDir());
+                FirebaseStorage
+                        .getInstance()
+                        .getReferenceFromUrl(url)
+                        .getFile(file)
+                        .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+                                OutputStream out;
+                                try {
+                                    out = new FileOutputStream(file);
+                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+                                } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+                                imageItemMessageContentImage.setImageBitmap(bitmap);
+                                cachedImages.put(url, file);
+                                progressBar.setVisibility(View.INVISIBLE);
+                                imageItemMessageContentImage.setVisibility(View.VISIBLE);
+                            }
+                        });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
 
         return convertView;
     }
@@ -279,5 +361,8 @@ public class MessagesListAdapter extends BaseAdapter {
                 .child(mGroupId)
                 .orderByChild("timestamp/date")
                 .removeEventListener(mChildEventListener);
+        for (String key : cachedImages.keySet()) {
+            cachedImages.get(key).delete();
+        }
     }
 }

@@ -147,16 +147,20 @@ public class FirebaseUtils {
                                   @Nullable OnProgressListener<UploadTask.TaskSnapshot> onProgressListener,
                                   @Nullable OnSuccessListener<UploadTask.TaskSnapshot> onSuccessListener,
                                   @Nullable OnFailureListener onFailureListener) throws IOException {
-
-        StorageReference storage = FirebaseStorage
-                .getInstance()
-                .getReference();
-
-        StorageReference fileRef = storage.child(groupId).child(userId).child(UUID.randomUUID().toString());
         InputStream is = null;
 
         try {
+            StorageReference storage = FirebaseStorage
+                    .getInstance()
+                    .getReference();
+
+            StorageReference fileRef = storage
+                    .child(groupId)
+                    .child(userId)
+                    .child(UUID.randomUUID().toString());
+
             is = new FileInputStream(new File(fileUri.getPath()));
+
             UploadTask task = fileRef.putStream(is);
 
             if (onProgressListener != null) {

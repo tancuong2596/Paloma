@@ -3,6 +3,7 @@ package cit.edu.paloma.activities;
 import android.Manifest;
 import android.app.LoaderManager;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.AsyncTaskLoader;
 import android.content.ClipData;
@@ -64,7 +65,6 @@ import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
 import cit.edu.paloma.datamodals.Message;
 import cit.edu.paloma.utils.FirebaseUtils;
-import cit.edu.paloma.utils.ImgurUtils;
 import cit.edu.paloma.utils.MessagesAdapterUtils;
 
 import static android.provider.MediaStore.ACTION_IMAGE_CAPTURE;
@@ -92,7 +92,7 @@ public class ChatActivity
     private TextView mEmptyConversationText;
     private ProgressDialog mImageUploadProcessDialog;
     private android.app.LoaderManager mLoaderManager;
-    private volatile NotificationManager mNotifyManager;
+    private NotificationManager mNotifyManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,9 +120,6 @@ public class ChatActivity
         mMessagesList.setAdapter(MessagesAdapterUtils.findAdapterByGroupId(groupId, this));
         mMessagesList.setOnItemClickListener(this);
 
-        mNotifyManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
         mGroupChatRenameDialog = new AlertDialog
                 .Builder(this, R.style.DialogTheme)
                 .setView(getLayoutInflater().inflate(R.layout.input_box_dialog, null))
@@ -142,6 +139,8 @@ public class ChatActivity
                 .create();
 
         mImageUploadProcessDialog = new ProgressDialog(this);
+
+        mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mLoaderManager = getLoaderManager();
 
@@ -281,19 +280,20 @@ public class ChatActivity
 
     private void uploadImageToFileBase(final int i, final Uri uri) {
         final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
+        final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+        final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
 
-        mBuilder.setContentTitle("Uploading image")
+       mBuilder.setContentTitle("Uploading image")
                 .setContentText(uri.getPath())
+                .setProgress(100, 0, true)
                 .setSmallIcon(R.drawable.ic_action_send_photo);
 
         mNotifyManager.notify(i, mBuilder.build());
 
-        final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
-        final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
-
         try {
             FirebaseUtils
-                    .uploadFile(uri,
+                    .uploadFile(
+                            uri,
                             groupId,
                             userId,
                             null,
@@ -435,7 +435,6 @@ public class ChatActivity
                 break;
         }
     }
-
 
 
     @Override
