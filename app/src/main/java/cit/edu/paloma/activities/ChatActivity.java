@@ -2,6 +2,7 @@ package cit.edu.paloma.activities;
 
 import android.Manifest;
 import android.app.LoaderManager;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.AsyncTaskLoader;
 import android.content.ClipData;
@@ -21,6 +22,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,10 +36,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.okhttp.Response;
@@ -47,11 +51,14 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
@@ -62,9 +69,10 @@ import cit.edu.paloma.utils.MessagesAdapterUtils;
 
 import static android.provider.MediaStore.ACTION_IMAGE_CAPTURE;
 
+@SuppressWarnings("VisibleForTests")
 public class ChatActivity
         extends AppCompatActivity
-        implements View.OnClickListener, LoaderManager.LoaderCallbacks<Object>, AdapterView.OnItemClickListener {
+        implements View.OnClickListener, AdapterView.OnItemClickListener {
     private static final String TAG = ChatActivity.class.getSimpleName();
 
     public static final String PARAM_ACTION_BAR_TITLE = "PARAM_ACTION_BAR_TITLE";
@@ -76,8 +84,6 @@ public class ChatActivity
     private static final int ACTION_REQUEST_CAMERA = 1;
     private static final int ACTION_REQUEST_FILE = 2;
 
-    private static final int LOADER_IMAGES_UPLOADING_ID = 0;
-
     private Button mSendButton;
     private EditText mMessageEdit;
     private ListView mMessagesList;
@@ -86,6 +92,7 @@ public class ChatActivity
     private TextView mEmptyConversationText;
     private ProgressDialog mImageUploadProcessDialog;
     private android.app.LoaderManager mLoaderManager;
+    private volatile NotificationManager mNotifyManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +119,9 @@ public class ChatActivity
         String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
         mMessagesList.setAdapter(MessagesAdapterUtils.findAdapterByGroupId(groupId, this));
         mMessagesList.setOnItemClickListener(this);
+
+        mNotifyManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mGroupChatRenameDialog = new AlertDialog
                 .Builder(this, R.style.DialogTheme)
@@ -225,14 +235,14 @@ public class ChatActivity
             return;
         }
 
-        ArrayList<Bitmap> bitmaps = new ArrayList<>();
-        ArrayList<Uri> files = new ArrayList<>();
+        ArrayList<Uri> bitmapsUris = new ArrayList<>();
+        ArrayList<Uri> filesUris = new ArrayList<>();
 
         switch (requestCode) {
             case ACTION_REQUEST_CAMERA:
                 if (data != null) {
                     Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                    bitmaps.add(bitmap);
+                    // todo: upload file captured by camera
                 }
                 break;
             case ACTION_REQUEST_GALLERY:
@@ -240,20 +250,10 @@ public class ChatActivity
                     ClipData clipData = data.getClipData();
                     for (int i = 0; i < clipData.getItemCount(); i++) {
                         ClipData.Item item = clipData.getItemAt(i);
-                        try {
-                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), item.getUri());
-                            bitmaps.add(bitmap);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        bitmapsUris.add(item.getUri());
                     }
                 } else if (data.getData() != null) {
-                    try {
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
-                        bitmaps.add(bitmap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    bitmapsUris.add(data.getData());
                 }
                 break;
             case ACTION_REQUEST_FILE:
@@ -261,68 +261,106 @@ public class ChatActivity
                     ClipData clipData = data.getClipData();
                     for (int i = 0; i < clipData.getItemCount(); i++) {
                         ClipData.Item item = clipData.getItemAt(i);
-                        files.add(item.getUri());
+                        filesUris.add(item.getUri());
                     }
                 } else if (data.getData() != null) {
-                    files.add(data.getData());
+                    filesUris.add(data.getData());
                 }
                 break;
         }
 
-        if (!bitmaps.isEmpty()) {
-            Bundle bundle = new Bundle();
-            bundle.putParcelableArrayList("bitmaps", bitmaps);
-            mLoaderManager.restartLoader(LOADER_IMAGES_UPLOADING_ID, bundle, this).forceLoad();
+
+        for (int i = 0; i < bitmapsUris.size(); i++) {
+            uploadImageToFileBase(i, bitmapsUris.get(i));
         }
 
-        if (!files.isEmpty()) {
-            Bundle bundle = new Bundle();
-            bundle.putParcelableArrayList("filesUris", files);
-            uploadFilesToFirebase(files);
+        for (int i = 0; i < filesUris.size(); i++) {
+            uploadFilesToFirebase(i, filesUris.get(i));
         }
     }
 
-    private void uploadFilesToFirebase(ArrayList<Uri> files) {
-        for (final Uri file : files) {
-            StorageReference storage = FirebaseStorage
-                    .getInstance()
-                    .getReference();
+    private void uploadImageToFileBase(final int i, final Uri uri) {
+        final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
 
-            final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
-            final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
-            final String[] fileBread = file.getPath().split("/");
-            String uniqueName = groupId + userId + file.hashCode();
+        mBuilder.setContentTitle("Uploading image")
+                .setContentText(uri.getPath())
+                .setSmallIcon(R.drawable.ic_action_send_photo);
 
-            StorageReference fileRef = storage.child(uniqueName);
-            InputStream is = null;
+        mNotifyManager.notify(i, mBuilder.build());
 
-            try {
-                is = new FileInputStream(new File(file.getPath()));
-                fileRef
-                        .putStream(is)
-                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                HashMap<String, Object> content = new HashMap<>();
-                                // noinspection VisibleForTests
-                                content.put("content", taskSnapshot.getDownloadUrl().toString());
-                                content.put("filename", fileBread[fileBread.length - 1]);
-                                FirebaseUtils
-                                        .sendMessage(new Message(
+        final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+        final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
+
+        try {
+            FirebaseUtils
+                    .uploadFile(uri,
+                            groupId,
+                            userId,
+                            null,
+                            new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                    mBuilder.setProgress(1, 1, false)
+                                            .setContentTitle("Completed")
+                                            .setSmallIcon(R.mipmap.ic_completed);
+                                    synchronized (mNotifyManager) {
+                                        mNotifyManager.notify(i, mBuilder.build());
+                                    }
+
+                                    HashMap<String, Object> content = new HashMap<>();
+                                    try {
+                                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+
+                                        content.put("content", taskSnapshot.getDownloadUrl().toString());
+                                        content.put("filename", getFileName(uri.getPath()));
+                                        content.put("sender", userId);
+                                        content.put("height", bitmap.getHeight());
+                                        content.put("width", bitmap.getWidth());
+
+                                        Message message = new Message(
                                                 "",
                                                 groupId,
                                                 userId,
-                                                Message.FILE,
+                                                Message.IMAGE,
                                                 content,
                                                 ServerValue.TIMESTAMP
-                                        ), null);
-                            }
-                        });
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+                                        );
 
+                                        FirebaseUtils
+                                                .sendMessage(message, null);
+
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
+                            },
+                            new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    mBuilder.setProgress(1, 1, false)
+                                            .setContentTitle("Failed")
+                                            .setContentText(e.getMessage())
+                                            .setSmallIcon(R.mipmap.ic_failed);
+                                    synchronized (mNotifyManager) {
+                                        mNotifyManager.notify(i, mBuilder.build());
+                                    }
+                                }
+                            }
+                    );
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    private String getFileName(String path) {
+        String[] tokens = path.split("/");
+        return tokens[tokens.length - 1];
+    }
+
+    private void uploadFilesToFirebase(int i, Uri uri) {
+        String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+        String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
     }
 
     @Override
@@ -398,97 +436,7 @@ public class ChatActivity
         }
     }
 
-    @Override
-    public Loader<Object> onCreateLoader(int id, final Bundle args) {
-        return new AsyncTaskLoader<Object>(this) {
-            @Override
-            protected void onStartLoading() {
-                super.onStartLoading();
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
-                mImageUploadProcessDialog.setMessage("Uploading chosen images...");
-                mImageUploadProcessDialog.setIndeterminate(true);
-                mImageUploadProcessDialog.show();
-                forceLoad();
-            }
 
-            private String uploadImageToImgur(@NonNull Bitmap bitmap) throws Exception {
-                String imageLink = null;
-
-                Response response =
-                        ImgurUtils.uploadBase64Photo(ImgurUtils.encodeBitmapToBase64(bitmap));
-
-                if (response.isSuccessful()) {
-                    JSONObject data = new JSONObject(response.body().string()).getJSONObject("data");
-                    imageLink = data.getString("link");
-                } else {
-                    throw new Exception("Cannot upload the image");
-                }
-
-                return imageLink;
-            }
-
-
-            @Override
-            public Object loadInBackground() {
-                ArrayList<HashMap<String, Object>> uploadedImagesLinks = new ArrayList<>();
-                ArrayList<Bitmap> bitmaps = null;
-
-                if (args != null) {
-                    bitmaps = args.getParcelableArrayList("bitmaps");
-                }
-
-                if (bitmaps == null) {
-                    return null;
-                }
-
-                for (Bitmap bitmap : bitmaps) {
-                    String link = null;
-                    try {
-                        link = uploadImageToImgur(bitmap);
-                        HashMap<String, Object> imageContent = new HashMap<>();
-                        imageContent.put("content", link);
-                        imageContent.put("height", bitmap.getHeight());
-                        imageContent.put("width", bitmap.getWidth());
-                        imageContent.put("sender", getIntent().getStringExtra(PARAM_CURRENT_USER_ID));
-                        uploadedImagesLinks.add(imageContent);
-                    } catch (Exception e) {
-                    }
-                }
-
-                return uploadedImagesLinks;
-            }
-        };
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Object> loader, Object data) {
-        switch (loader.getId()) {
-            case LOADER_IMAGES_UPLOADING_ID:
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-                mImageUploadProcessDialog.hide();
-                ArrayList<HashMap<String, Object>> uploadedImagesLinks = (ArrayList<HashMap<String, Object>>) data;
-                for (HashMap<String, Object> imageLink : uploadedImagesLinks) {
-
-                    Message newMessage = new Message(
-                            "",
-                            getIntent().getStringExtra(PARAM_GROUP_CHAT_ID),
-                            getIntent().getStringExtra(PARAM_CURRENT_USER_ID),
-                            Message.IMAGE,
-                            imageLink,
-                            ServerValue.TIMESTAMP
-                    );
-
-                    FirebaseUtils
-                            .sendMessage(newMessage, null);
-                }
-                break;
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Object> loader) {
-
-    }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

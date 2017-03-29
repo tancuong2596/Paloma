@@ -1,9 +1,14 @@
 package cit.edu.paloma.utils;
 
+import android.content.Context;
+import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -13,11 +18,21 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cit.edu.paloma.datamodals.ChatGroup;
@@ -62,7 +77,9 @@ public class FirebaseUtils {
 
         if (firebaseCurrentUser != null) {
             recentMessage.append(firebaseCurrentUser.getDisplayName());
-            if (messageContent.containsKey("content")) {
+            if (messageContent.containsKey("filename")) {
+                recentMessage.append(": ").append(messageContent.get("filename"));
+            } else if (messageContent.containsKey("content")) {
                 recentMessage.append(": ").append(messageContent.get("content"));
             }
         }
@@ -124,5 +141,37 @@ public class FirebaseUtils {
         return chatGroupRef;
     }
 
+    public static void uploadFile(Uri fileUri,
+                                  final String groupId,
+                                  final String userId,
+                                  @Nullable OnProgressListener<UploadTask.TaskSnapshot> onProgressListener,
+                                  @Nullable OnSuccessListener<UploadTask.TaskSnapshot> onSuccessListener,
+                                  @Nullable OnFailureListener onFailureListener) throws IOException {
 
+        StorageReference storage = FirebaseStorage
+                .getInstance()
+                .getReference();
+
+        StorageReference fileRef = storage.child(groupId).child(userId).child(UUID.randomUUID().toString());
+        InputStream is = null;
+
+        try {
+            is = new FileInputStream(new File(fileUri.getPath()));
+            UploadTask task = fileRef.putStream(is);
+
+            if (onProgressListener != null) {
+                task.addOnProgressListener(onProgressListener);
+            }
+
+            if (onSuccessListener != null) {
+                task.addOnSuccessListener(onSuccessListener);
+            }
+
+            if (onFailureListener != null) {
+                task.addOnFailureListener(onFailureListener);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 }
