@@ -1,23 +1,17 @@
 package cit.edu.paloma.activities;
 
 import android.Manifest;
-import android.app.LoaderManager;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.AsyncTaskLoader;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.Loader;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -29,33 +23,20 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.okhttp.Response;
 
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TimerTask;
@@ -290,7 +271,7 @@ public class ChatActivity
 
         mNotifyManager.notify(i, mBuilder.build());
 
-        final String remoteName = UUID.randomUUID().toString();
+        final String remoteName = generateRemoteName();
 
         StorageReference storage = FirebaseStorage
                 .getInstance()
@@ -350,6 +331,15 @@ public class ChatActivity
                         }
                     }
                 });
+    }
+
+    private String generateRemoteName() {
+                MessagesListAdapter adapter = (MessagesListAdapter) mMessagesList.getAdapter();
+        String remoteName = UUID.randomUUID().toString();
+        while (adapter.isDuplicatedName(remoteName)) {
+            remoteName = UUID.randomUUID().toString();
+        }
+        return remoteName;
     }
 
     private String getFileName(String path) {
@@ -444,8 +434,9 @@ public class ChatActivity
 
         switch (item.getContentType()) {
             case Message.IMAGE:
-                WebView webView = new WebView(this);
-                webView.loadUrl(content.get("content").toString());
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(content.get("content").toString()));
+                startActivity(intent);
                 break;
             case Message.FILE:
                 // todo: implement to handle when the file message is clicked

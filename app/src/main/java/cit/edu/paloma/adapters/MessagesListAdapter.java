@@ -57,6 +57,7 @@ public class MessagesListAdapter extends BaseAdapter {
         this.mMessagesList = new ArrayList<>();
         this.mGroupId = groupId;
         setupMessagesChildEventListener();
+        initCacheDir();
     }
 
     private void setupMessagesChildEventListener() {
@@ -238,13 +239,13 @@ public class MessagesListAdapter extends BaseAdapter {
         return inSampleSize;
     }
 
-    private File initCacheDir(Message message) {
+    private File initCacheDir() {
         final File imageCacheDir = new File(mContext.getCacheDir(), "images");
         if (!imageCacheDir.exists()) {
             imageCacheDir.mkdirs();
         }
 
-        final File groupImageCacheDir = new File(imageCacheDir, message.getGroupChatId());
+        final File groupImageCacheDir = new File(imageCacheDir, mGroupId);
         if (!groupImageCacheDir.exists()) {
             groupImageCacheDir.mkdirs();
         }
@@ -292,7 +293,7 @@ public class MessagesListAdapter extends BaseAdapter {
         final BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inSampleSize = calculateInSampleSize(imageWidth, imageHeight, newImageWidth, newImageHeight);
 
-        File dir = initCacheDir(message);
+        File dir = initCacheDir();
 
         if (cachedImages.containsKey(remoteName)) {
             progressBar.setVisibility(View.VISIBLE);
@@ -377,8 +378,12 @@ public class MessagesListAdapter extends BaseAdapter {
                 .child(mGroupId)
                 .orderByChild("timestamp/date")
                 .removeEventListener(mChildEventListener);
-        for (String key : cachedImages.keySet()) {
-            cachedImages.get(key).delete();
+    }
+
+    public boolean isDuplicatedName(String remoteName) {
+        if (cachedImages.isEmpty()) {
+            initCacheDir();
         }
+        return cachedImages.containsKey(remoteName);
     }
 }
