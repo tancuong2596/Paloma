@@ -251,7 +251,7 @@ public class ChatActivity
 
 
         for (int i = 0; i < bitmapsUris.size(); i++) {
-            uploadImageToFileBase(i, bitmapsUris.get(i));
+            uploadImageToFirebase(i, bitmapsUris.get(i));
         }
 
         for (int i = 0; i < filesUris.size(); i++) {
@@ -259,7 +259,7 @@ public class ChatActivity
         }
     }
 
-    private void uploadImageToFileBase(final int i, final Uri uri) {
+    private void uploadImageToFirebase(final int i, final Uri uri) {
         final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
         final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
         final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
