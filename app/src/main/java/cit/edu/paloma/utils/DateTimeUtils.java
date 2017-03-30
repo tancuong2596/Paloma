@@ -11,7 +11,7 @@ import java.util.TimeZone;
 
 public class DateTimeUtils {
     public static String getReadableDateTime(long timestamp) {
-        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm a");
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy hh:mm a");
         format.setTimeZone(TimeZone.getDefault());
         return format.format(new Date(timestamp));
     }
