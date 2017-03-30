@@ -41,12 +41,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
 import cit.edu.paloma.datamodals.Message;
+import cit.edu.paloma.misc.IdentifierGenerator;
 import cit.edu.paloma.utils.FirebaseUtils;
 import cit.edu.paloma.utils.MessagesAdapterUtils;
 
@@ -76,6 +75,7 @@ public class ChatActivity
     private ProgressDialog mImageUploadProcessDialog;
     private android.app.LoaderManager mLoaderManager;
     private NotificationManager mNotifyManager;
+    private IdentifierGenerator idGen;
 
 
     @Override
@@ -83,6 +83,7 @@ public class ChatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         initViews();
+        idGen = new IdentifierGenerator();
     }
 
     @Override
@@ -252,13 +253,12 @@ public class ChatActivity
                 break;
         }
 
-
         for (int i = 0; i < bitmapsUris.size(); i++) {
-            uploadImageToFirebase(i, bitmapsUris.get(i));
+            uploadImageToFirebase(idGen.nextInt(), bitmapsUris.get(i));
         }
 
         for (int i = 0; i < filesUris.size(); i++) {
-            uploadFilesToFirebase(-i, filesUris.get(i));
+            uploadFilesToFirebase(idGen.nextInt(), filesUris.get(i));
         }
     }
 
@@ -289,8 +289,10 @@ public class ChatActivity
                         mBuilder.setProgress(1, 1, false)
                                 .setContentTitle("Completed")
                                 .setSmallIcon(R.mipmap.ic_completed);
+
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
+                            idGen.putBackInt(id);
                         }
 
                         HashMap<String, Object> content = new HashMap<>();
@@ -331,6 +333,7 @@ public class ChatActivity
                                 .setSmallIcon(R.mipmap.ic_failed);
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
+                            idGen.putBackInt(id);
                         }
                     }
                 });
@@ -380,6 +383,7 @@ public class ChatActivity
 
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
+                            idGen.putBackInt(id);
                         }
 
                         HashMap<String, Object> content = new HashMap<>();
@@ -413,6 +417,7 @@ public class ChatActivity
 
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
+                            idGen.putBackInt(id);
                         }
                     }
                 });
