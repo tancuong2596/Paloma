@@ -3,9 +3,7 @@ package cit.edu.paloma.adapters;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,8 +14,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -25,7 +21,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
@@ -33,10 +28,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -246,6 +238,25 @@ public class MessagesListAdapter extends BaseAdapter {
         return inSampleSize;
     }
 
+    private File initCacheDir(Message message) {
+        final File imageCacheDir = new File(mContext.getCacheDir(), "images");
+        if (!imageCacheDir.exists()) {
+            imageCacheDir.mkdirs();
+        }
+
+        final File groupImageCacheDir = new File(imageCacheDir, message.getGroupChatId());
+        if (!groupImageCacheDir.exists()) {
+            groupImageCacheDir.mkdirs();
+        }
+
+        for (File file : groupImageCacheDir.listFiles()) {
+            if (!cachedImages.containsKey(file.getName())) {
+                cachedImages.put(file.getName(), file);
+            }
+        }
+
+        return groupImageCacheDir;
+    }
 
     private View getImageMessageView(Message message, View convertView, ViewGroup parent) {
         LayoutInflater layoutInflater =
@@ -276,16 +287,20 @@ public class MessagesListAdapter extends BaseAdapter {
         imageItemMessageContentImage.requestLayout();
 
         final String url = imageContent.get("content").toString();
+        final String remoteName = imageContent.get("remotename").toString();
 
         final BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inSampleSize = calculateInSampleSize(imageWidth, imageHeight, newImageWidth, newImageHeight);
 
-        if (cachedImages.containsKey(url)) {
+        File dir = initCacheDir(message);
+
+        if (cachedImages.containsKey(remoteName)) {
             progressBar.setVisibility(View.VISIBLE);
             imageItemMessageContentImage.setVisibility(View.INVISIBLE);
+            imageItemMessageContentImage.setImageBitmap(null);
             Picasso
                     .with(mContext)
-                    .load(cachedImages.get(url))
+                    .load(cachedImages.get(remoteName))
                     .into(imageItemMessageContentImage, new Callback() {
                         @Override
                         public void onSuccess() {
@@ -300,34 +315,35 @@ public class MessagesListAdapter extends BaseAdapter {
                         }
                     });
         } else {
-            try {
-                progressBar.setVisibility(View.VISIBLE);
-                imageItemMessageContentImage.setVisibility(View.INVISIBLE);
-                final File file = File.createTempFile(UUID.randomUUID().toString(), "jpeg", mContext.getCacheDir());
-                FirebaseStorage
-                        .getInstance()
-                        .getReferenceFromUrl(url)
-                        .getFile(file)
-                        .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
-                                OutputStream out;
-                                try {
-                                    out = new FileOutputStream(file);
-                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-                                } catch (FileNotFoundException e) {
-                                    e.printStackTrace();
-                                }
-                                imageItemMessageContentImage.setImageBitmap(bitmap);
-                                cachedImages.put(url, file);
-                                progressBar.setVisibility(View.INVISIBLE);
-                                imageItemMessageContentImage.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.VISIBLE);
+            imageItemMessageContentImage.setVisibility(View.INVISIBLE);
+
+            final File file = new File(dir, remoteName);
+
+            FirebaseStorage
+                    .getInstance()
+                    .getReferenceFromUrl(url)
+                    .getFile(file)
+                    .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                            Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), opts);
+                            OutputStream out;
+
+                            try {
+                                out = new FileOutputStream(file);
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out);
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                        });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
+                            imageItemMessageContentImage.setImageBitmap(bitmap);
+                            cachedImages.put(remoteName, file);
+
+                            progressBar.setVisibility(View.INVISIBLE);
+                            imageItemMessageContentImage.setVisibility(View.VISIBLE);
+                        }
+                    });
         }
 
 

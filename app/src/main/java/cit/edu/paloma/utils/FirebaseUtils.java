@@ -140,42 +140,4 @@ public class FirebaseUtils {
 
         return chatGroupRef;
     }
-
-    public static void uploadFile(Uri fileUri,
-                                  final String groupId,
-                                  final String userId,
-                                  @Nullable OnProgressListener<UploadTask.TaskSnapshot> onProgressListener,
-                                  @Nullable OnSuccessListener<UploadTask.TaskSnapshot> onSuccessListener,
-                                  @Nullable OnFailureListener onFailureListener) throws IOException {
-        InputStream is = null;
-
-        try {
-            StorageReference storage = FirebaseStorage
-                    .getInstance()
-                    .getReference();
-
-            StorageReference fileRef = storage
-                    .child(groupId)
-                    .child(userId)
-                    .child(UUID.randomUUID().toString());
-
-            is = new FileInputStream(new File(fileUri.getPath()));
-
-            UploadTask task = fileRef.putStream(is);
-
-            if (onProgressListener != null) {
-                task.addOnProgressListener(onProgressListener);
-            }
-
-            if (onSuccessListener != null) {
-                task.addOnSuccessListener(onSuccessListener);
-            }
-
-            if (onFailureListener != null) {
-                task.addOnFailureListener(onFailureListener);
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
 }

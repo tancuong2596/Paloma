@@ -283,74 +283,73 @@ public class ChatActivity
         final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
         final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
 
-       mBuilder.setContentTitle("Uploading image")
+        mBuilder.setContentTitle("Uploading image")
                 .setContentText(uri.getPath())
                 .setProgress(100, 0, true)
                 .setSmallIcon(R.drawable.ic_action_send_photo);
 
         mNotifyManager.notify(i, mBuilder.build());
 
-        try {
-            FirebaseUtils
-                    .uploadFile(
-                            uri,
-                            groupId,
-                            userId,
-                            null,
-                            new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                                @Override
-                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                    mBuilder.setProgress(1, 1, false)
-                                            .setContentTitle("Completed")
-                                            .setSmallIcon(R.mipmap.ic_completed);
-                                    synchronized (mNotifyManager) {
-                                        mNotifyManager.notify(i, mBuilder.build());
-                                    }
+        final String remoteName = UUID.randomUUID().toString();
 
-                                    HashMap<String, Object> content = new HashMap<>();
-                                    try {
-                                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+        StorageReference storage = FirebaseStorage
+                .getInstance()
+                .getReference();
 
-                                        content.put("content", taskSnapshot.getDownloadUrl().toString());
-                                        content.put("filename", getFileName(uri.getPath()));
-                                        content.put("sender", userId);
-                                        content.put("height", bitmap.getHeight());
-                                        content.put("width", bitmap.getWidth());
+        storage
+                .child(groupId + "/" + remoteName)
+                .putFile(uri)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        mBuilder.setProgress(1, 1, false)
+                                .setContentTitle("Completed")
+                                .setSmallIcon(R.mipmap.ic_completed);
+                        synchronized (mNotifyManager) {
+                            mNotifyManager.notify(i, mBuilder.build());
+                        }
 
-                                        Message message = new Message(
-                                                "",
-                                                groupId,
-                                                userId,
-                                                Message.IMAGE,
-                                                content,
-                                                ServerValue.TIMESTAMP
-                                        );
+                        HashMap<String, Object> content = new HashMap<>();
+                        try {
+                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
 
-                                        FirebaseUtils
-                                                .sendMessage(message, null);
+                            content.put("content", taskSnapshot.getDownloadUrl().toString());
+                            content.put("filename", getFileName(uri.getPath()));
+                            content.put("remotename", remoteName);
+                            content.put("sender", userId);
+                            content.put("height", bitmap.getHeight());
+                            content.put("width", bitmap.getWidth());
 
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
+                            Message message = new Message(
+                                    "",
+                                    groupId,
+                                    userId,
+                                    Message.IMAGE,
+                                    content,
+                                    ServerValue.TIMESTAMP
+                            );
 
-                                }
-                            },
-                            new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    mBuilder.setProgress(1, 1, false)
-                                            .setContentTitle("Failed")
-                                            .setContentText(e.getMessage())
-                                            .setSmallIcon(R.mipmap.ic_failed);
-                                    synchronized (mNotifyManager) {
-                                        mNotifyManager.notify(i, mBuilder.build());
-                                    }
-                                }
-                            }
-                    );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                            FirebaseUtils
+                                    .sendMessage(message, null);
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        mBuilder.setProgress(1, 1, false)
+                                .setContentTitle("Failed")
+                                .setContentText(e.getMessage())
+                                .setSmallIcon(R.mipmap.ic_failed);
+                        synchronized (mNotifyManager) {
+                            mNotifyManager.notify(i, mBuilder.build());
+                        }
+                    }
+                });
     }
 
     private String getFileName(String path) {
