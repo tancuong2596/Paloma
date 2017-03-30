@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
@@ -74,6 +76,7 @@ public class ChatActivity
     private ProgressDialog mImageUploadProcessDialog;
     private android.app.LoaderManager mLoaderManager;
     private NotificationManager mNotifyManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -255,11 +258,11 @@ public class ChatActivity
         }
 
         for (int i = 0; i < filesUris.size(); i++) {
-            uploadFilesToFirebase(i, filesUris.get(i));
+            uploadFilesToFirebase(-i, filesUris.get(i));
         }
     }
 
-    private void uploadImageToFirebase(final int i, final Uri uri) {
+    private void uploadImageToFirebase(final int id, final Uri uri) {
         final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
         final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
         final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
@@ -269,7 +272,7 @@ public class ChatActivity
                 .setProgress(100, 0, true)
                 .setSmallIcon(R.drawable.ic_action_send_photo);
 
-        mNotifyManager.notify(i, mBuilder.build());
+        mNotifyManager.notify(id, mBuilder.build());
 
         final String remoteName = generateRemoteName();
 
@@ -278,7 +281,7 @@ public class ChatActivity
                 .getReference();
 
         storage
-                .child(groupId + "/" + remoteName)
+                .child(groupId + "/images/" + remoteName)
                 .putFile(uri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
@@ -287,7 +290,7 @@ public class ChatActivity
                                 .setContentTitle("Completed")
                                 .setSmallIcon(R.mipmap.ic_completed);
                         synchronized (mNotifyManager) {
-                            mNotifyManager.notify(i, mBuilder.build());
+                            mNotifyManager.notify(id, mBuilder.build());
                         }
 
                         HashMap<String, Object> content = new HashMap<>();
@@ -327,14 +330,14 @@ public class ChatActivity
                                 .setContentText(e.getMessage())
                                 .setSmallIcon(R.mipmap.ic_failed);
                         synchronized (mNotifyManager) {
-                            mNotifyManager.notify(i, mBuilder.build());
+                            mNotifyManager.notify(id, mBuilder.build());
                         }
                     }
                 });
     }
 
     private String generateRemoteName() {
-                MessagesListAdapter adapter = (MessagesListAdapter) mMessagesList.getAdapter();
+        MessagesListAdapter adapter = (MessagesListAdapter) mMessagesList.getAdapter();
         String remoteName = UUID.randomUUID().toString();
         while (adapter.isDuplicatedName(remoteName)) {
             remoteName = UUID.randomUUID().toString();
@@ -347,9 +350,72 @@ public class ChatActivity
         return tokens[tokens.length - 1];
     }
 
-    private void uploadFilesToFirebase(int i, Uri uri) {
-        String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
-        String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
+    private void uploadFilesToFirebase(final int id, final Uri uri) {
+        final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
+        final String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+        final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
+
+        mBuilder.setContentTitle("Uploading file")
+                .setContentText(uri.getPath())
+                .setProgress(100, 0, true)
+                .setSmallIcon(R.drawable.ic_action_send_file);
+
+        mNotifyManager.notify(id, mBuilder.build());
+
+        final String remoteName = UUID.randomUUID().toString();
+
+        StorageReference storage = FirebaseStorage
+                .getInstance()
+                .getReference();
+
+        storage
+                .child(groupId + "/files/" + remoteName)
+                .putFile(uri)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        mBuilder.setProgress(1, 1, false)
+                                .setContentTitle("Completed")
+                                .setSmallIcon(R.mipmap.ic_completed);
+
+                        synchronized (mNotifyManager) {
+                            mNotifyManager.notify(id, mBuilder.build());
+                        }
+
+                        HashMap<String, Object> content = new HashMap<>();
+
+                        content.put("content", taskSnapshot.getDownloadUrl().toString());
+                        content.put("filename", getFileName(uri.getPath()));
+                        content.put("remotename", remoteName);
+                        content.put("sender", userId);
+
+                        Message message = new Message(
+                                "",
+                                groupId,
+                                userId,
+                                Message.FILE,
+                                content,
+                                ServerValue.TIMESTAMP
+                        );
+
+                        FirebaseUtils
+                                .sendMessage(message, null);
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        mBuilder.setProgress(1, 1, false)
+                                .setContentTitle("Failed")
+                                .setContentText(e.getMessage())
+                                .setSmallIcon(R.mipmap.ic_failed);
+
+                        synchronized (mNotifyManager) {
+                            mNotifyManager.notify(id, mBuilder.build());
+                        }
+                    }
+                });
     }
 
     @Override
@@ -376,11 +442,11 @@ public class ChatActivity
     private void chooseFileSource() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        intent.setType("file/*");
+        intent.setType("*/*");
 
         if (ensurePermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            Intent chooser = Intent.createChooser(intent, "Choose a file");
+            Intent chooser = Intent.createChooser(intent, "Choose files");
             startActivityForResult(chooser, ACTION_REQUEST_FILE);
         }
     }
