@@ -8,9 +8,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
@@ -28,14 +31,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,15 +53,17 @@ import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
 import cit.edu.paloma.datamodals.Message;
 import cit.edu.paloma.misc.IdentifierGenerator;
+import cit.edu.paloma.utils.DateTimeUtils;
 import cit.edu.paloma.utils.FirebaseUtils;
 import cit.edu.paloma.utils.MessagesAdapterUtils;
 
 import static android.provider.MediaStore.ACTION_IMAGE_CAPTURE;
+import static android.provider.MediaStore.MEDIA_IGNORE_FILENAME;
 
 @SuppressWarnings("VisibleForTests")
 public class ChatActivity
         extends AppCompatActivity
-        implements View.OnClickListener, AdapterView.OnItemClickListener {
+        implements View.OnClickListener, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
     private static final String TAG = ChatActivity.class.getSimpleName();
 
     public static final String PARAM_ACTION_BAR_TITLE = "PARAM_ACTION_BAR_TITLE";
@@ -75,7 +84,7 @@ public class ChatActivity
     private ProgressDialog mImageUploadProcessDialog;
     private android.app.LoaderManager mLoaderManager;
     private NotificationManager mNotifyManager;
-    private IdentifierGenerator idGen;
+    private IdentifierGenerator mIdGenerator;
 
 
     @Override
@@ -83,7 +92,7 @@ public class ChatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         initViews();
-        idGen = new IdentifierGenerator();
+        mIdGenerator = new IdentifierGenerator();
     }
 
     @Override
@@ -104,6 +113,7 @@ public class ChatActivity
         String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
         mMessagesList.setAdapter(MessagesAdapterUtils.findAdapterByGroupId(groupId, this));
         mMessagesList.setOnItemClickListener(this);
+        mMessagesList.setOnItemLongClickListener(this);
 
         mGroupChatRenameDialog = new AlertDialog
                 .Builder(this, R.style.DialogTheme)
@@ -226,7 +236,16 @@ public class ChatActivity
             case ACTION_REQUEST_CAMERA:
                 if (data != null) {
                     Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                    // todo: upload file captured by camera
+                    String randomFileName = "Snapshot " + DateTimeUtils.getScreenshotDateTime(System.currentTimeMillis());
+                    File file = new File(this.getCacheDir(), randomFileName);
+                    try (FileOutputStream out = new FileOutputStream(file)) {
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        file.deleteOnExit();
+                    }
+                    bitmapsUris.add(Uri.fromFile(file));
                 }
                 break;
             case ACTION_REQUEST_GALLERY:
@@ -254,11 +273,11 @@ public class ChatActivity
         }
 
         for (int i = 0; i < bitmapsUris.size(); i++) {
-            uploadImageToFirebase(idGen.nextInt(), bitmapsUris.get(i));
+            uploadImageToFirebase(mIdGenerator.nextInt(), bitmapsUris.get(i));
         }
 
         for (int i = 0; i < filesUris.size(); i++) {
-            uploadFilesToFirebase(idGen.nextInt(), filesUris.get(i));
+            uploadFilesToFirebase(mIdGenerator.nextInt(), filesUris.get(i));
         }
     }
 
@@ -268,7 +287,7 @@ public class ChatActivity
         final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
 
         mBuilder.setContentTitle("Uploading image")
-                .setContentText(uri.getPath())
+                .setContentText(getFileName(uri))
                 .setProgress(100, 0, true)
                 .setSmallIcon(R.drawable.ic_action_send_photo);
 
@@ -292,7 +311,7 @@ public class ChatActivity
 
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
-                            idGen.putBackInt(id);
+                            mIdGenerator.putBackInt(id);
                         }
 
                         HashMap<String, Object> content = new HashMap<>();
@@ -300,7 +319,7 @@ public class ChatActivity
                             Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
 
                             content.put("content", taskSnapshot.getDownloadUrl().toString());
-                            content.put("filename", uri.getPath());
+                            content.put("filename", getFileName(uri));
                             content.put("remotename", remoteName);
                             content.put("sender", userId);
                             content.put("height", bitmap.getHeight());
@@ -333,7 +352,7 @@ public class ChatActivity
                                 .setSmallIcon(R.mipmap.ic_failed);
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
-                            idGen.putBackInt(id);
+                            mIdGenerator.putBackInt(id);
                         }
                     }
                 });
@@ -348,9 +367,29 @@ public class ChatActivity
         return remoteName;
     }
 
-    private String getFileName(String path) {
-        String[] tokens = path.split("/");
-        return tokens[tokens.length - 1];
+    private String getFileName(Uri uri) {
+        String result = UUID.randomUUID().toString();
+        if (uri.getScheme().equals("file")) {
+            result = uri.getLastPathSegment();
+        } else {
+            Cursor cursor = null;
+            try {
+                cursor = getContentResolver().query(uri, null, null, null, null);
+                if (cursor != null && cursor.getCount() > 0) {
+                    Integer nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    cursor.moveToFirst();
+                    result = cursor.getString(nameIndex);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+
+        return result;
     }
 
     private void uploadFilesToFirebase(final int id, final Uri uri) {
@@ -359,7 +398,7 @@ public class ChatActivity
         final String userId = getIntent().getStringExtra(PARAM_CURRENT_USER_ID);
 
         mBuilder.setContentTitle("Uploading file")
-                .setContentText(uri.getPath())
+                .setContentText(getFileName(uri))
                 .setProgress(100, 0, true)
                 .setSmallIcon(R.drawable.ic_action_send_file);
 
@@ -383,13 +422,13 @@ public class ChatActivity
 
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
-                            idGen.putBackInt(id);
+                            mIdGenerator.putBackInt(id);
                         }
 
                         HashMap<String, Object> content = new HashMap<>();
 
                         content.put("content", taskSnapshot.getDownloadUrl().toString());
-                        content.put("filename", uri.getPath());
+                        content.put("filename", getFileName(uri));
                         content.put("remotename", remoteName);
                         content.put("sender", userId);
 
@@ -417,7 +456,7 @@ public class ChatActivity
 
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
-                            idGen.putBackInt(id);
+                            mIdGenerator.putBackInt(id);
                         }
                     }
                 });
@@ -510,8 +549,69 @@ public class ChatActivity
                 startActivity(intent);
                 break;
             case Message.FILE:
-                // todo: implement to handle when the file message is clicked
+                Toast.makeText(this, "Starting to download the file", Toast.LENGTH_LONG).show();
+                if (ensurePermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    if (downloadDir.exists()) {
+                        File file = new File(downloadDir, item.getContent().get("remotename").toString());
+                        file.deleteOnExit();
+
+                        final NotificationCompat.Builder builder = new NotificationCompat.Builder(ChatActivity.this);
+                        builder.setProgress(100, 0, true);
+                        builder.setSmallIcon(R.drawable.ic_download);
+                        builder.setContentText("Downloading");
+                        builder.setSubText(item.getContent().get("filename").toString());
+
+                        final int notificationId = mIdGenerator.nextInt();
+                        synchronized (mNotifyManager) {
+                            mNotifyManager.notify(notificationId, builder.build());
+                        }
+
+                        FirebaseStorage
+                                .getInstance()
+                                .getReferenceFromUrl(item.getContent().get("content").toString())
+                                .getFile(file)
+                                .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                        builder.setProgress(1, 1, false);
+                                        builder.setContentText("Download completed");
+                                        builder.setSmallIcon(R.mipmap.ic_completed);
+                                        synchronized (mNotifyManager) {
+                                            mNotifyManager.notify(notificationId, builder.build());
+                                            mIdGenerator.putBackInt(notificationId);
+                                        }
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        builder.setProgress(1, 1, false);
+                                        builder.setContentText("Download failed");
+                                        builder.setSmallIcon(R.mipmap.ic_failed);
+                                        synchronized (mNotifyManager) {
+                                            mNotifyManager.notify(notificationId, builder.build());
+                                            mIdGenerator.putBackInt(notificationId);
+                                        }
+                                    }
+                                });
+                    }
+                }
                 break;
         }
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        MessagesListAdapter adapter = (MessagesListAdapter) parent.getAdapter();
+        Message item = adapter.getItem(position);
+        HashMap<String, Object> content = item.getContent();
+
+        switch (item.getContentType()) {
+
+        }
+
+        return true;
     }
 }
