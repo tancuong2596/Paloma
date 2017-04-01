@@ -2,6 +2,7 @@ package cit.edu.paloma.activities;
 
 import android.Manifest;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.Context;
@@ -53,6 +54,7 @@ import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
 import cit.edu.paloma.datamodals.Message;
 import cit.edu.paloma.misc.IdentifierGenerator;
+import cit.edu.paloma.receivers.OpenFileWithAppReceiver;
 import cit.edu.paloma.utils.DateTimeUtils;
 import cit.edu.paloma.utils.FirebaseUtils;
 import cit.edu.paloma.utils.MessagesAdapterUtils;
@@ -74,6 +76,8 @@ public class ChatActivity
     private static final int ACTION_REQUEST_GALLERY = 0;
     private static final int ACTION_REQUEST_CAMERA = 1;
     private static final int ACTION_REQUEST_FILE = 2;
+
+    private static final int OPEN_FILE_WITH_APP_RC = 0;
 
     private Button mSendButton;
     private EditText mMessageEdit;
@@ -550,55 +554,61 @@ public class ChatActivity
                 break;
             case Message.FILE:
                 Toast.makeText(this, "Starting to download the file", Toast.LENGTH_LONG).show();
-                if (ensurePermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                    if (downloadDir.exists()) {
-                        File file = new File(downloadDir, item.getContent().get("remotename").toString());
-                        file.deleteOnExit();
-
-                        final NotificationCompat.Builder builder = new NotificationCompat.Builder(ChatActivity.this);
-                        builder.setProgress(100, 0, true);
-                        builder.setSmallIcon(R.drawable.ic_download);
-                        builder.setContentText("Downloading");
-                        builder.setSubText(item.getContent().get("filename").toString());
-
-                        final int notificationId = mIdGenerator.nextInt();
-                        synchronized (mNotifyManager) {
-                            mNotifyManager.notify(notificationId, builder.build());
-                        }
-
-                        FirebaseStorage
-                                .getInstance()
-                                .getReferenceFromUrl(item.getContent().get("content").toString())
-                                .getFile(file)
-                                .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                                    @Override
-                                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                                        builder.setProgress(1, 1, false);
-                                        builder.setContentText("Download completed");
-                                        builder.setSmallIcon(R.mipmap.ic_completed);
-                                        synchronized (mNotifyManager) {
-                                            mNotifyManager.notify(notificationId, builder.build());
-                                            mIdGenerator.putBackInt(notificationId);
-                                        }
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        builder.setProgress(1, 1, false);
-                                        builder.setContentText("Download failed");
-                                        builder.setSmallIcon(R.mipmap.ic_failed);
-                                        synchronized (mNotifyManager) {
-                                            mNotifyManager.notify(notificationId, builder.build());
-                                            mIdGenerator.putBackInt(notificationId);
-                                        }
-                                    }
-                                });
-                    }
-                }
+                downloadFileFromFirebase(item);
                 break;
+        }
+    }
+
+    private void downloadFileFromFirebase(Message item) {
+        if (ensurePermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (downloadDir.exists()) {
+                File file = new File(downloadDir, item.getContent().get("filename").toString());
+
+                final NotificationCompat.Builder builder = new NotificationCompat.Builder(ChatActivity.this);
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, OPEN_FILE_WITH_APP_RC, new Intent(this, OpenFileWithAppReceiver.class), PendingIntent.FLAG_UPDATE_CURRENT);
+
+                builder.setProgress(100, 0, true);
+                builder.setSmallIcon(R.drawable.ic_download);
+                builder.setContentText("Downloading");
+                builder.setSubText(item.getContent().get("filename").toString());
+                builder.setContentIntent(pendingIntent);
+
+                final int notificationId = mIdGenerator.nextInt();
+                synchronized (mNotifyManager) {
+                    mNotifyManager.notify(notificationId, builder.build());
+                }
+
+                FirebaseStorage
+                        .getInstance()
+                        .getReferenceFromUrl(item.getContent().get("content").toString())
+                        .getFile(file)
+                        .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                builder.setProgress(1, 1, false);
+                                builder.setContentText("Download completed");
+                                builder.setSmallIcon(R.mipmap.ic_completed);
+                                synchronized (mNotifyManager) {
+                                    mNotifyManager.notify(notificationId, builder.build());
+                                    mIdGenerator.putBackInt(notificationId);
+                                }
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                builder.setProgress(1, 1, false);
+                                builder.setContentText("Download failed");
+                                builder.setSmallIcon(R.mipmap.ic_failed);
+                                synchronized (mNotifyManager) {
+                                    mNotifyManager.notify(notificationId, builder.build());
+                                    mIdGenerator.putBackInt(notificationId);
+                                }
+                            }
+                        });
+            }
         }
     }
 
