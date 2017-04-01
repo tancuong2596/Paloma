@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="8dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="8dp">
+
+    <ImageView
+        android:id="@+id/file_item_avatar_image"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/facebook_button" />
+
+    <TextView
+        android:id="@+id/file_item_full_name_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toRightOf="@+id/file_item_avatar_image"
+        app:layout_constraintTop_toTopOf="@+id/file_item_avatar_image"
+        tools:text="Brad Pitt" />
+
+    <TextView
+        android:id="@+id/file_item_send_time_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:textSize="11sp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/file_item_full_name_text"
+        app:layout_constraintBottom_toBottomOf="@+id/file_item_full_name_text"
+        app:layout_constraintRight_toRightOf="parent"
+        tools:text="9:00 PM" />
+
+    <LinearLayout
+        android:id="@+id/file_item_file_link_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="@id/file_item_full_name_text"
+        app:layout_constraintTop_toBottomOf="@id/file_item_full_name_text"
+        app:layout_constraintRight_toRightOf="@id/file_item_send_time_text"
+        android:background="#a2bac6"
+        android:padding="8dp"
+        android:layout_marginTop="4dp">
+
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_attachment"
+            android:layout_marginRight="8dp"/>
+
+        <TextView
+            android:id="@+id/file_item_link_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textStyle="italic"
+            tools:text="www.hostname.com/file=gke.txt" />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

@@ -1,11 +1,8 @@
 package cit.edu.paloma.adapters;
 
 import android.content.Context;
-import android.nfc.Tag;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,13 +17,12 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.datamodals.ChatGroup;
@@ -37,19 +33,17 @@ import cit.edu.paloma.utils.FirebaseUtils;
 /**
  * Created by charlie on 3/5/17.
  */
-public class FriendListAdapter extends BaseAdapter {
-    private static final String TAG = FriendListAdapter.class.getSimpleName();
+public class FriendsListAdapter extends BaseAdapter {
+    private static final String TAG = FriendsListAdapter.class.getSimpleName();
     private ListView mListView;
     private Context mContext;
     private ArrayList<ChatGroup> mChatGroups;
-    private HashMap<String, Integer> mKeyMap;
 
-    public FriendListAdapter(Context context, ListView listView) {
+    public FriendsListAdapter(Context context, ListView listView) {
         mContext = context;
         mListView = listView;
 
         mChatGroups = new ArrayList<>();
-        mKeyMap = new HashMap<>();
 
         setupChatGroupsChildEventListener();
     }
@@ -64,15 +58,16 @@ public class FriendListAdapter extends BaseAdapter {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String prevChildName) {
                             ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
-                            String childName = dataSnapshot.getKey();
+
+                            if (!chatGroup.getMembers().containsKey(firebaseCurrentUser.getUid())) {
+                                return;
+                            }
 
                             if (prevChildName == null) {
                                 mChatGroups.add(0, chatGroup);
-                                mKeyMap.put(childName, 0);
                             } else {
-                                Integer prevChildIndex = mKeyMap.get(prevChildName);
+                                Integer prevChildIndex = indexOf(prevChildName);
                                 mChatGroups.add(prevChildIndex + 1, chatGroup);
-                                mKeyMap.put(childName, prevChildIndex + 1);
                             }
 
                             notifyDataSetChanged();
@@ -81,21 +76,39 @@ public class FriendListAdapter extends BaseAdapter {
                         @Override
                         public void onChildChanged(DataSnapshot dataSnapshot, String prevChildName) {
                             ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
+
+                            if (!chatGroup.getMembers().containsKey(firebaseCurrentUser.getUid())) {
+                                return;
+                            }
+
                             String childName = dataSnapshot.getKey();
 
-                            Integer childIndex = mKeyMap.get(childName);
+                            Integer childIndex = indexOf(childName);
                             mChatGroups.set(childIndex, chatGroup);
 
                             notifyDataSetChanged();
                         }
 
+                        private Integer indexOf(String childName) {
+                            for (int i = 0; i < mChatGroups.size(); i++) {
+                                if (mChatGroups.get(i).getGroupId().equals(childName)) {
+                                    return i;
+                                }
+                            }
+                            return -1;
+                        }
+
                         @Override
                         public void onChildRemoved(DataSnapshot dataSnapshot) {
+                            ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
+                            if (!chatGroup.getMembers().containsKey(firebaseCurrentUser.getUid())) {
+                                return;
+                            }
+
                             String childName = dataSnapshot.getKey();
 
-                            int childIndex = mKeyMap.get(childName);
+                            int childIndex = indexOf(childName);
                             mChatGroups.remove(childIndex);
-                            mKeyMap.remove(childName);
 
                             notifyDataSetChanged();
                         }
@@ -135,13 +148,13 @@ public class FriendListAdapter extends BaseAdapter {
         ChatGroup chatGroup = getItem(position);
 
         if (chatGroup.getMembers().size() <= 2) {
-            return itemOfCoupleMembers(chatGroup, convertView, parent);
+            return getItemOfCoupleMembers(chatGroup, convertView, parent);
         } else {
-            return itemOfMultipleMembers(chatGroup, convertView, parent);
+            return getItemOfMultipleMembers(chatGroup, convertView, parent);
         }
     }
 
-    private View itemOfMultipleMembers(ChatGroup chatGroup, View view, ViewGroup parent) {
+    private View getItemOfMultipleMembers(ChatGroup chatGroup, View view, ViewGroup parent) {
         LayoutInflater layoutInflater =
                 (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -157,7 +170,6 @@ public class FriendListAdapter extends BaseAdapter {
         TextView tripleSubText = (TextView) view.findViewById(R.id.triple_sub_text);
 
         // three first users
-
         String[] userAvatars = new String[]{"", "", ""};
         int index = 0;
         for (String key : chatGroup.getMembers().keySet()) {
@@ -189,15 +201,15 @@ public class FriendListAdapter extends BaseAdapter {
             tripleMainText.setText(chatGroup.getGroupName());
         }
 
-        // todo: set recent message text
-        Message recentMessage = null;
+        // set recent message text
+        String recentMessage = null;
 
-        if (chatGroup.getMessages() != null && !chatGroup.getMessages().isEmpty()) {
-            recentMessage = ((Message) chatGroup.getMessages().get(chatGroup.getMessages().size() - 1));
+        if (chatGroup.getRecentMessage() != null && !chatGroup.getRecentMessage().isEmpty()) {
+            recentMessage = (chatGroup.getRecentMessage());
         }
 
         if (recentMessage != null) {
-            tripleSubText.setText((String) recentMessage.getContent());
+            tripleSubText.setText(recentMessage);
         } else {
             tripleSubText.setText(null);
         }
@@ -215,7 +227,9 @@ public class FriendListAdapter extends BaseAdapter {
                         StringBuilder name = new StringBuilder();
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             User user = snapshot.getValue(User.class);
-                            name.append(user.getFullName()).append(", ");
+                            if (members.containsKey(user.getUserId())) {
+                                name.append(user.getFullName()).append(", ");
+                            }
                         }
 
                         int nOthers = members.size() - 3;
@@ -237,7 +251,7 @@ public class FriendListAdapter extends BaseAdapter {
     }
 
 
-    private View itemOfCoupleMembers(final ChatGroup chatGroup, View view, ViewGroup parent) {
+    private View getItemOfCoupleMembers(final ChatGroup chatGroup, View view, ViewGroup parent) {
         LayoutInflater layoutInflater =
                 (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -264,8 +278,8 @@ public class FriendListAdapter extends BaseAdapter {
         }
 
         for (String key : chatGroup.getMembers().keySet()) {
-            if (!key.equalsIgnoreCase(currentUser.getUid())) {
-                avatar = (String) chatGroup.getMembers().get(key);
+            if (!key.equals(currentUser.getUid())) {
+                avatar = (String) chatGroup.getMembers().get(key); 
                 userId = key;
                 break;
             }
@@ -276,15 +290,14 @@ public class FriendListAdapter extends BaseAdapter {
                 .load(avatar)
                 .into(avatarImage);
 
-        Message recentMessage = null;
+        String recentMessage = null;
 
-
-        if (chatGroup.getMessages() != null && !chatGroup.getMessages().isEmpty()) {
-            recentMessage = ((Message) chatGroup.getMessages().get(chatGroup.getMessages().size() - 1));
+        if (chatGroup.getRecentMessage() != null && !chatGroup.getRecentMessage().isEmpty()) {
+            recentMessage = chatGroup.getRecentMessage();
         }
 
         if (recentMessage != null) {
-            subLeftInfoText.setText((String) recentMessage.getContent());
+            subLeftInfoText.setText(recentMessage);
         } else {
             subLeftInfoText.setText(null);
         }

@@ -20,6 +20,8 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResolvingResultCallbacks;
+import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -30,11 +32,13 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import cit.edu.paloma.R;
+import cit.edu.paloma.datamodals.ChatGroup;
 import cit.edu.paloma.datamodals.User;
-import cit.edu.paloma.fragments.FindFriendsFragment;
+import cit.edu.paloma.fragments.SuggestedFriendsListFragment;
 import cit.edu.paloma.fragments.FriendsListFragment;
 import cit.edu.paloma.fragments.SignInFragment;
 import cit.edu.paloma.utils.FirebaseUtils;
+import cit.edu.paloma.utils.MessagesAdapterUtils;
 
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
@@ -42,9 +46,6 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String FRAGMENT_FIND_FRIENDS = "FRAGMENT_FIND_FRIENDS";
     private static final String FRAGMENT_FRIENDS_LIST = "FRAGMENT_FRIENDS_LIST";
-
-    public static final String FRIEND_ACCEPTED = "accepted";
-    public static final String FRIEND_PENDING = "pending";
 
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -83,25 +84,6 @@ public class MainActivity extends AppCompatActivity
                 .enableAutoManage(this, this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, mGoogleSignInOptions)
                 .build();
-
-
-        mGroupChatRenameDialog = new AlertDialog
-                .Builder(this, R.style.DialogTheme)
-                .setView(getLayoutInflater().inflate(R.layout.input_box_dialog, null))
-                .setTitle("Name your conversation")
-                .setPositiveButton("Create", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .create();
     }
 
     public GoogleSignInOptions getGoogleSignInOptions() {
@@ -146,12 +128,12 @@ public class MainActivity extends AppCompatActivity
                         .replace(R.id.fragment_container, new SignInFragment())
                         .commit();
                 break;
-            case R.layout.fragment_find_friends:
+            case R.layout.fragment_suggested_friends:
                 showSearchBox(true);
 
                 mFragmentManager
                         .beginTransaction()
-                        .add(R.id.fragment_container, new FindFriendsFragment(), FRAGMENT_FIND_FRIENDS)
+                        .add(R.id.fragment_container, new SuggestedFriendsListFragment(), FRAGMENT_FIND_FRIENDS)
                         .addToBackStack(null)
                         .commit();
 
@@ -263,6 +245,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         mFirebaseAuth.removeAuthStateListener(mAuthListener);
     }
 
@@ -277,14 +264,14 @@ public class MainActivity extends AppCompatActivity
                         return;
                     }
 
-                    FindFriendsFragment fragment =
-                            (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+                    SuggestedFriendsListFragment fragment =
+                            (SuggestedFriendsListFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
                     if (fragment != null) {
                         fragment.findUsersWithPattern(pattern);
                     }
                 } else {
-                    navigateTo(R.layout.fragment_find_friends);
+                    navigateTo(R.layout.fragment_suggested_friends);
                 }
                 break;
             }
@@ -294,15 +281,23 @@ public class MainActivity extends AppCompatActivity
                 break;
             }
             case R.id.ac_apply_image: {
-                FindFriendsFragment fragment =
-                        (FindFriendsFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
+                SuggestedFriendsListFragment fragment =
+                        (SuggestedFriendsListFragment) mFragmentManager.findFragmentByTag(FRAGMENT_FIND_FRIENDS);
 
-                ArrayList<Object[]> members = fragment.getSelectedMembers();
-                members.add(new Object[]{mFirebaseCurrentUserRef, mCurrentUser});
+                if (fragment != null) {
+                    ArrayList<Object[]> members = fragment.getSelectedMembers();
 
-                DatabaseReference ref = FirebaseUtils.createNewChatGroup(members, null);
+                    if (members == null || members.isEmpty()) {
+                        return;
+                    }
 
-                mFragmentManager.popBackStack();
+                    members.add(new Object[]{mFirebaseCurrentUserRef, mCurrentUser});
+
+                    FirebaseUtils.createNewChatGroup(members, null);
+
+                    mFragmentManager.popBackStack();
+                    showSearchBox(false);
+                }
                 break;
             }
         }
@@ -314,7 +309,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void signOut() {
-        showSearchBox(true);
+        showSearchBox(false);
+        MessagesAdapterUtils.clear();
 
         if (mFirebaseCurrentUser != null) {
             mFirebaseCurrentUserRef
@@ -322,10 +318,16 @@ public class MainActivity extends AppCompatActivity
                     .setValue(Boolean.FALSE);
         }
 
-        FirebaseAuth.getInstance().signOut();
+        FirebaseAuth
+                .getInstance()
+                .signOut();
+
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
-            Auth.GoogleSignInApi.signOut(mGoogleApiClient);
+            Auth
+                    .GoogleSignInApi
+                    .signOut(mGoogleApiClient);
         }
+
         mFirebaseCurrentUser = null;
     }
 }

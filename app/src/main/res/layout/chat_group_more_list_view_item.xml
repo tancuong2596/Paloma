@@ -31,21 +31,22 @@
     <ImageView
         android:id="@+id/user3_avatar_image"
         android:layout_width="28dp"
-        android:layout_height="30dp"
+        android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/user2_avatar_image"
         app:layout_constraintLeft_toRightOf="@id/user1_avatar_image"
+        app:layout_constraintBottom_toBottomOf="@id/user1_avatar_image"
         tools:src="@drawable/facebook_button" />
 
     <TextView
         android:id="@+id/triple_main_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="24dp"
+        android:layout_marginLeft="7dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:textColor="@android:color/black"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toRightOf="@id/user2_avatar_image"
+        android:maxLines="2"
         tools:text="Brad Pitt, Launer, Sam" />
 
     <TextView
@@ -57,14 +58,5 @@
         app:layout_constraintTop_toBottomOf="@+id/triple_main_text"
         android:maxLines="2"
         tools:text="Hello, are you there\nWe be looking for you" />
-
-    <!--<View-->
-        <!--android:id="@+id/triple_indicator"-->
-        <!--android:layout_width="12dp"-->
-        <!--android:layout_height="12dp"-->
-        <!--app:layout_constraintBottom_toBottomOf="parent"-->
-        <!--app:layout_constraintLeft_toLeftOf="@+id/triple_sub_text"-->
-        <!--app:layout_constraintTop_toBottomOf="@+id/triple_sub_text"-->
-        <!--tools:background="@drawable/is_online" />-->
 
 </android.support.constraint.ConstraintLayout>
