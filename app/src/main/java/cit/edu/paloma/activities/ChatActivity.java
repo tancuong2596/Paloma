@@ -300,7 +300,7 @@ public class ChatActivity
                             Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
 
                             content.put("content", taskSnapshot.getDownloadUrl().toString());
-                            content.put("filename", getFileName(uri.getPath()));
+                            content.put("filename", uri.getPath());
                             content.put("remotename", remoteName);
                             content.put("sender", userId);
                             content.put("height", bitmap.getHeight());
@@ -389,7 +389,7 @@ public class ChatActivity
                         HashMap<String, Object> content = new HashMap<>();
 
                         content.put("content", taskSnapshot.getDownloadUrl().toString());
-                        content.put("filename", getFileName(uri.getPath()));
+                        content.put("filename", uri.getPath());
                         content.put("remotename", remoteName);
                         content.put("sender", userId);
 

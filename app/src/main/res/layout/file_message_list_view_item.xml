@@ -45,11 +45,12 @@
 
     <LinearLayout
         android:id="@+id/file_item_file_link_layout"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintLeft_toLeftOf="@id/file_item_full_name_text"
         app:layout_constraintTop_toBottomOf="@id/file_item_full_name_text"
+        app:layout_constraintRight_toRightOf="@id/file_item_send_time_text"
         android:background="#a2bac6"
         android:padding="8dp"
         android:layout_marginTop="4dp">
