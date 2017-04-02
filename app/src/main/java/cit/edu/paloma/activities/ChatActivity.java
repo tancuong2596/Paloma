@@ -27,6 +27,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -54,13 +55,11 @@ import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
 import cit.edu.paloma.datamodals.Message;
 import cit.edu.paloma.misc.IdentifierGenerator;
-import cit.edu.paloma.receivers.OpenFileWithAppReceiver;
 import cit.edu.paloma.utils.DateTimeUtils;
 import cit.edu.paloma.utils.FirebaseUtils;
 import cit.edu.paloma.utils.MessagesAdapterUtils;
 
 import static android.provider.MediaStore.ACTION_IMAGE_CAPTURE;
-import static android.provider.MediaStore.MEDIA_IGNORE_FILENAME;
 
 @SuppressWarnings("VisibleForTests")
 public class ChatActivity
@@ -559,21 +558,37 @@ public class ChatActivity
         }
     }
 
+    private Intent makeOpenIntent(String filePath) {
+        File file = new File(filePath);
+        Uri uri = Uri.fromFile(file);
+
+        MimeTypeMap mimeMap = MimeTypeMap.getSingleton();
+        String ext = MimeTypeMap.getFileExtensionFromUrl(file.getName());
+        String type = mimeMap.getMimeTypeFromExtension(ext);
+
+        if (type == null) {
+            type = "*/*";
+        }
+
+        Intent openIntent = new Intent(Intent.ACTION_VIEW);
+        openIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        openIntent.setDataAndType(uri, type);
+        return openIntent;
+    }
+
+
     private void downloadFileFromFirebase(Message item) {
         if (ensurePermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)) {
             File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             if (downloadDir.exists()) {
-                File file = new File(downloadDir, item.getContent().get("filename").toString());
+                final File file = new File(downloadDir, item.getContent().get("filename").toString());
 
                 final NotificationCompat.Builder builder = new NotificationCompat.Builder(ChatActivity.this);
 
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, OPEN_FILE_WITH_APP_RC, new Intent(this, OpenFileWithAppReceiver.class), PendingIntent.FLAG_UPDATE_CURRENT);
-
                 builder.setProgress(100, 0, true);
                 builder.setSmallIcon(R.drawable.ic_download);
-                builder.setContentText("Downloading");
-                builder.setSubText(item.getContent().get("filename").toString());
-                builder.setContentIntent(pendingIntent);
+                builder.setContentTitle("Downloading");
+                builder.setContentText(item.getContent().get("filename").toString());
 
                 final int notificationId = mIdGenerator.nextInt();
                 synchronized (mNotifyManager) {
@@ -587,9 +602,14 @@ public class ChatActivity
                         .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                             @Override
                             public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                PendingIntent pendingIntent =
+                                        PendingIntent.getActivity(ChatActivity.this, 0, makeOpenIntent(file.getAbsolutePath()), PendingIntent.FLAG_CANCEL_CURRENT);
+                                builder.setContentIntent(pendingIntent);
+
                                 builder.setProgress(1, 1, false);
-                                builder.setContentText("Download completed");
+                                builder.setContentTitle("Download completed");
                                 builder.setSmallIcon(R.mipmap.ic_completed);
+
                                 synchronized (mNotifyManager) {
                                     mNotifyManager.notify(notificationId, builder.build());
                                     mIdGenerator.putBackInt(notificationId);
@@ -600,7 +620,7 @@ public class ChatActivity
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 builder.setProgress(1, 1, false);
-                                builder.setContentText("Download failed");
+                                builder.setContentTitle("Download failed");
                                 builder.setSmallIcon(R.mipmap.ic_failed);
                                 synchronized (mNotifyManager) {
                                     mNotifyManager.notify(notificationId, builder.build());

@@ -47,6 +47,10 @@
                 android:value=".activities.MainActivity" />
         </activity>
 
+        <receiver
+            android:name=".receivers.OpenFileWithAppReceiver"
+            android:exported="false" />
+
     </application>
 
 </manifest>
