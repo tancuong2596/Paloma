@@ -140,4 +140,33 @@ public class FirebaseUtils {
 
         return chatGroupRef;
     }
+
+    public static void deleteMessage(final Message item) {
+        FirebaseUtils
+                .getMessagesRef()
+                .child(item.getGroupChatId() + "/" + item.getMessageId())
+                .removeValue(new DatabaseReference.CompletionListener() {
+                    @Override
+                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                        HashMap<String, Object> content = item.getContent();
+                        switch (item.getContentType()) {
+                            case Message.IMAGE:
+                            case Message.FILE:
+                                FirebaseStorage
+                                        .getInstance()
+                                        .getReferenceFromUrl(content.get("content").toString())
+                                        .delete()
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.v(TAG, "Failed to delete file when delete message");
+                                            }
+                                        });
+                                break;
+                            case Message.TEXT:
+                                break;
+                        }
+                    }
+                });
+    }
 }

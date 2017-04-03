@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -37,6 +39,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
@@ -47,6 +51,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -88,7 +93,6 @@ public class ChatActivity
     private android.app.LoaderManager mLoaderManager;
     private NotificationManager mNotifyManager;
     private IdentifierGenerator mIdGenerator;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -547,15 +551,19 @@ public class ChatActivity
 
         switch (item.getContentType()) {
             case Message.IMAGE:
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(content.get("content").toString()));
-                startActivity(intent);
+                openInBrowser(content);
                 break;
             case Message.FILE:
                 Toast.makeText(this, "Starting to download the file", Toast.LENGTH_LONG).show();
                 downloadFileFromFirebase(item);
                 break;
         }
+    }
+
+    private void openInBrowser(HashMap<String, Object> content) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(content.get("content").toString()));
+        startActivity(intent);
     }
 
     private Intent makeOpenIntent(String filePath) {
@@ -635,13 +643,60 @@ public class ChatActivity
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         MessagesListAdapter adapter = (MessagesListAdapter) parent.getAdapter();
-        Message item = adapter.getItem(position);
-        HashMap<String, Object> content = item.getContent();
+        final Message item = adapter.getItem(position);
+        final HashMap<String, Object> content = item.getContent();
+        final FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        switch (item.getContentType()) {
+        ArrayList<String> fileActions = new ArrayList<>(Arrays.asList("Download", "Delete", "Copy Link"));
+        ArrayList<String> textActions = new ArrayList<>(Arrays.asList("Edit", "Delete", "Copy Text"));
+        ArrayList<String> imageActions = new ArrayList<>(Arrays.asList("View in Browser", "Download", "Delete", "Copy Link"));
 
+        ArrayList<String> actions = fileActions;
+        if (item.getContentType() == Message.IMAGE) {
+            actions = imageActions;
+        } else {
+            actions = textActions;
         }
 
+        if (currentUser != null) {
+            if (!currentUser.getUid().equals(item.getSenderId())) {
+                actions.remove("Delete");
+                actions.remove("Edit");
+            }
+        }
+
+        final String[] menuItems = new String[actions.size()];
+        actions.toArray(menuItems);
+
+        new AlertDialog.Builder(this)
+                .setItems(menuItems, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String menuItem = menuItems[which];
+                        if (menuItem.equalsIgnoreCase("delete")) {
+                            FirebaseUtils.deleteMessage(item);
+                        } else if (menuItem.equalsIgnoreCase("download")) {
+                            downloadFileFromFirebase(item);
+                        } else if (menuItem.equalsIgnoreCase("copy link") || menuItem.equalsIgnoreCase("copy text")) {
+                            copyContentToClipboard(content);
+                        } else if (menuItem.equalsIgnoreCase("edit")) {
+                            // todo: implement edit message
+                        } else if (menuItem.equalsIgnoreCase("view in browser")) {
+                            openInBrowser(content);
+                        }
+                    }
+                })
+                .show();
+
         return true;
+    }
+
+    private void copyContentToClipboard(HashMap<String, Object> content) {
+        ClipboardManager mClipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (mClipboardManager != null) {
+            ClipData clipData = ClipData.newPlainText("downloadLink", content.get("content").toString());
+            Toast.makeText(ChatActivity.this, "Content Copied", Toast.LENGTH_SHORT).show();
+            mClipboardManager.setPrimaryClip(clipData);
+        }
     }
 }
