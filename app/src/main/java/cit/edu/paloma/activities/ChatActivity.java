@@ -23,6 +23,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
+import android.text.InputType;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -33,6 +34,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,6 +55,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.TimerTask;
 import java.util.UUID;
 
@@ -245,12 +248,11 @@ public class ChatActivity
                     Bitmap bitmap = (Bitmap) data.getExtras().get("data");
                     String randomFileName = "Snapshot " + DateTimeUtils.getScreenshotDateTime(System.currentTimeMillis());
                     File file = new File(this.getCacheDir(), randomFileName);
+                    file.deleteOnExit();
                     try (FileOutputStream out = new FileOutputStream(file)) {
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
                     } catch (IOException e) {
                         e.printStackTrace();
-                    } finally {
-                        file.deleteOnExit();
                     }
                     bitmapsUris.add(Uri.fromFile(file));
                 }
@@ -680,7 +682,38 @@ public class ChatActivity
                         } else if (menuItem.equalsIgnoreCase("copy link") || menuItem.equalsIgnoreCase("copy text")) {
                             copyContentToClipboard(content);
                         } else if (menuItem.equalsIgnoreCase("edit")) {
-                            // todo: implement edit message
+                            AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
+                            builder.setTitle("Edit your message");
+
+                            final EditText input = new EditText(ChatActivity.this);
+                            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                            input.setMinLines(1);
+                            input.setMinHeight(50);
+                            builder.setView(input);
+
+                            input.setText(item.getContent().get("content").toString());
+
+                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    CharSequence text = input.getText().toString();
+                                    HashMap<String, Object> updateChildren = new HashMap<>();
+                                    HashMap<String, Object> content = item.getContent();
+                                    content.put("content", text);
+                                    updateChildren.put(item.getGroupChatId() + "/" + item.getMessageId() + "/content", content);
+                                    FirebaseUtils
+                                            .getMessagesRef()
+                                            .updateChildren(updateChildren);
+                                }
+                            });
+                            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                            builder.show();
                         } else if (menuItem.equalsIgnoreCase("view in browser")) {
                             openInBrowser(content);
                         }
