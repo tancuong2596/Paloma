@@ -88,7 +88,7 @@ public class ChatActivity
 
     private Button mSendButton;
     private EditText mMessageEdit;
-    private ListView mMessagesList;
+    public ListView mMessagesList;
     private ActionBar mActionBar;
     private AlertDialog mGroupChatRenameDialog;
     private TextView mEmptyConversationText;
@@ -504,7 +504,7 @@ public class ChatActivity
         }
     }
 
-    private void scrollToEnd() {
+    public void scrollToEnd() {
         mMessagesList.post(new TimerTask() {
             @Override
             public void run() {

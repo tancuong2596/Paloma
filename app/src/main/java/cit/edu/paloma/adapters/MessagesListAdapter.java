@@ -30,11 +30,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cit.edu.paloma.R;
+import cit.edu.paloma.activities.ChatActivity;
+import cit.edu.paloma.datamodals.ChatGroup;
 import cit.edu.paloma.datamodals.Message;
 import cit.edu.paloma.datamodals.User;
 import cit.edu.paloma.utils.DateTimeUtils;
@@ -69,9 +73,28 @@ public class MessagesListAdapter extends BaseAdapter {
                 if (prevChildKey == null) {
                     mMessagesList.add(0, message);
                 } else {
-                    int prevChildIndex = indexOf(prevChildKey);
-                    mMessagesList.add(prevChildIndex + 1, message);
+                    int index = mMessagesList.size() - 1;
+
+                    Long currentTimestamp = (Long) message.getTimestamp().get("date");
+                    for (int i = 0; i < mMessagesList.size(); i++) {
+                        Long timestamp = (Long) mMessagesList.get(i).getTimestamp().get("date");
+                        if (timestamp > currentTimestamp) {
+                            index = i;
+                            break;
+                        }
+                    }
+
+                    if (index >= 0) {
+                        mMessagesList.add(index + 1, message);
+                    }
                 }
+
+                int last = ((ChatActivity) mContext).mMessagesList.getLastVisiblePosition();
+
+                if (last >= mMessagesList.size() - 1) {
+                    ((ChatActivity) mContext).scrollToEnd();
+                }
+
                 notifyDataSetChanged();
             }
 

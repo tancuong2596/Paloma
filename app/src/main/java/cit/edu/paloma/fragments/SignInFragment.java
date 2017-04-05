@@ -116,6 +116,7 @@ public class SignInFragment
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         ((MainActivity) getActivity()).signOut();
+                        showWaitingScreen(false);
                     }
                 })
                 .show();
