@@ -67,6 +67,7 @@ import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
 import cit.edu.paloma.datamodals.ChatGroup;
 import cit.edu.paloma.datamodals.Message;
+import cit.edu.paloma.fragments.SuggestedFriendsListFragment;
 import cit.edu.paloma.misc.IdentifierGenerator;
 import cit.edu.paloma.utils.DateTimeUtils;
 import cit.edu.paloma.utils.FirebaseUtils;
