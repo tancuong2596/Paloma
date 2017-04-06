@@ -540,9 +540,8 @@ public class ChatActivity
                 builder.show();
                 break;
             case R.id.action_add_members:
-                builder = new AlertDialog.Builder(ChatActivity.this);
-                builder.setView(R.layout.fragment_suggested_friends);
-                builder.show();
+                Intent intent = new Intent(this, AddFriendsActivity.class);
+                startActivity(intent);
                 break;
         }
         return super.onOptionsItemSelected(item);

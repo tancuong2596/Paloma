@@ -14,6 +14,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="portrait"
@@ -24,9 +25,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activities.UserDetailsActivity"
-            android:theme="@style/FragmentTheme"></activity>
+            android:theme="@style/FragmentTheme">
+        </activity>
+
         <activity
             android:name=".activities.ChatActivity"
             android:launchMode="singleTop"
@@ -37,7 +41,18 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MainActivity" />
         </activity>
-        <activity android:name=".activities.AddFriendsActivity"></activity>
+
+        <activity
+            android:name=".activities.AddFriendsActivity"
+            android:launchMode="singleTop"
+            android:parentActivityName=".activities.ChatActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/ChatActivityTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.MainActivity" />
+        </activity>
+
     </application>
 
 </manifest>
