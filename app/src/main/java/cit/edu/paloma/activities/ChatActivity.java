@@ -345,6 +345,7 @@ public class ChatActivity
                                 .setContentTitle("Failed")
                                 .setContentText(e.getMessage())
                                 .setSmallIcon(R.mipmap.ic_failed);
+
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
                             mIdGenerator.putBackInt(id);
@@ -464,6 +465,8 @@ public class ChatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        AlertDialog.Builder builder;
+
         switch (item.getItemId()) {
             case android.R.id.home:
                 onBackPressed();
@@ -475,7 +478,7 @@ public class ChatActivity
                 chooseImageSource();
                 break;
             case R.id.action_rename_group:
-                final AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
+                builder = new AlertDialog.Builder(ChatActivity.this);
                 builder.setTitle("Name of your group");
 
                 String oldGroupName = "";
@@ -533,9 +536,12 @@ public class ChatActivity
                     }
                 });
 
-
                 builder.show();
-
+                break;
+            case R.id.action_add_members:
+                builder = new AlertDialog.Builder(ChatActivity.this);
+                builder.setView(R.layout.fragment_suggested_friends);
+                builder.show();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -755,6 +761,7 @@ public class ChatActivity
                                             .updateChildren(updateChildren);
                                 }
                             });
+
                             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {

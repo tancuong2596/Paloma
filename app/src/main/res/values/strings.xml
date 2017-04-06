@@ -30,4 +30,5 @@
     <string name="send">send</string>
     <string name="empty_conversation">empty conversation</string>
     <string name="text_to_friends">Text to Friends</string>
+    <string name="search">search</string>
 </resources>
