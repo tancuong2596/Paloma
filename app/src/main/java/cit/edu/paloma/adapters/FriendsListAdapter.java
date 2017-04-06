@@ -225,10 +225,15 @@ public class FriendsListAdapter extends BaseAdapter {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         StringBuilder name = new StringBuilder();
+                        int count = 0;
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             User user = snapshot.getValue(User.class);
                             if (members.containsKey(user.getUserId())) {
                                 name.append(user.getFullName()).append(", ");
+                                count++;
+                                if (count >= 3) {
+                                    break;
+                                }
                             }
                         }
 
