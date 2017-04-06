@@ -1,39 +1,20 @@
 package cit.edu.paloma.utils;
 
-import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ServerValue;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import cit.edu.paloma.datamodals.ChatGroup;
 import cit.edu.paloma.datamodals.Message;
@@ -102,7 +83,7 @@ public class FirebaseUtils {
                                            @Nullable DatabaseReference.CompletionListener completionListener) {
 
         HashMap<String, Object> updateChildren = new HashMap<>();
-        updateChildren.put(userRef.getKey(), newUserInfo.topMap());
+        updateChildren.put(userRef.getKey(), newUserInfo.toMap());
 
         FirebaseUtils
                 .getUsersRef()

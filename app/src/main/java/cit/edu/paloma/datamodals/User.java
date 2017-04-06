@@ -77,7 +77,7 @@ public class User {
     }
 
     @Exclude
-    public Map<String, Object> topMap() {
+    public Map<String, Object> toMap() {
         HashMap<String, Object> map = new HashMap<>();
         map.put("userId", this.getUserId());
         map.put("email", this.getEmail());
