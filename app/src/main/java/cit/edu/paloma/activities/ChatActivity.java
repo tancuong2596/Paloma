@@ -90,7 +90,6 @@ public class ChatActivity
     private EditText mMessageEdit;
     public ListView mMessagesList;
     private ActionBar mActionBar;
-    private AlertDialog mGroupChatRenameDialog;
     private TextView mEmptyConversationText;
     private ProgressDialog mImageUploadProcessDialog;
     private android.app.LoaderManager mLoaderManager;
@@ -124,24 +123,6 @@ public class ChatActivity
         mMessagesList.setAdapter(MessagesAdapterUtils.findAdapterByGroupId(groupId, this));
         mMessagesList.setOnItemClickListener(this);
         mMessagesList.setOnItemLongClickListener(this);
-
-        mGroupChatRenameDialog = new AlertDialog
-                .Builder(this, R.style.DialogTheme)
-                .setView(getLayoutInflater().inflate(R.layout.input_box_dialog, null))
-                .setTitle("Name your group")
-                .setPositiveButton("Create", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .create();
 
         mImageUploadProcessDialog = new ProgressDialog(this);
 
@@ -487,6 +468,50 @@ public class ChatActivity
                 break;
             case R.id.action_send_image:
                 chooseImageSource();
+                break;
+            case R.id.action_rename_group:
+                final AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
+                builder.setTitle("Name of your group");
+
+                String oldGroupName = "";
+                if (mActionBar != null) {
+                    oldGroupName = mActionBar.getTitle().toString();
+                }
+
+                final EditText input = new EditText(ChatActivity.this);
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                input.setText(oldGroupName);
+
+                builder.setView(input);
+
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.setPositiveButton("Rename", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+                        FirebaseUtils
+                                .getChatGroupsRef()
+                                .child(groupId + "/groupName")
+                                .setValue(input.getText().toString())
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        if (mActionBar != null) {
+                                            mActionBar.setTitle(input.getText().toString());
+                                        }
+                                    }
+                                });
+                    }
+                });
+
+                builder.show();
+
                 break;
         }
         return super.onOptionsItemSelected(item);

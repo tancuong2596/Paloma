@@ -13,4 +13,14 @@
         android:icon="@drawable/ic_action_send_file"
         android:title="Send Files"/>
 
+    <item
+        android:id="@+id/action_rename_group"
+        app:showAsAction="never"
+        android:title="Rename Group"/>
+
+    <item
+        android:id="@+id/action_add_members"
+        app:showAsAction="never"
+        android:title="Add Members"/>
+
 </menu>
