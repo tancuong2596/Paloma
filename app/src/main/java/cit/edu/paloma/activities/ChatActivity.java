@@ -43,7 +43,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.MutableData;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -61,6 +65,7 @@ import java.util.UUID;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
+import cit.edu.paloma.datamodals.ChatGroup;
 import cit.edu.paloma.datamodals.Message;
 import cit.edu.paloma.misc.IdentifierGenerator;
 import cit.edu.paloma.utils.DateTimeUtils;
@@ -495,20 +500,39 @@ public class ChatActivity
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+                        final String newGroupName = input.getText().toString();
+
                         FirebaseUtils
                                 .getChatGroupsRef()
-                                .child(groupId + "/groupName")
-                                .setValue(input.getText().toString())
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                .child(groupId)
+                                .runTransaction(new Transaction.Handler() {
                                     @Override
-                                    public void onSuccess(Void aVoid) {
-                                        if (mActionBar != null) {
-                                            mActionBar.setTitle(input.getText().toString());
+                                    public Transaction.Result doTransaction(MutableData mutableData) {
+                                        ChatGroup chatGroup = mutableData.getValue(ChatGroup.class);
+
+                                        if (chatGroup == null) {
+                                            return Transaction.success(mutableData);
+                                        }
+
+                                        chatGroup.setGroupName(newGroupName);
+
+                                        mutableData.setValue(chatGroup);
+
+                                        return Transaction.success(mutableData);
+                                    }
+
+                                    @Override
+                                    public void onComplete(DatabaseError databaseError, boolean committed, DataSnapshot dataSnapshot) {
+                                        if (committed) {
+                                            if (mActionBar != null) {
+                                                mActionBar.setTitle(newGroupName);
+                                            }
                                         }
                                     }
                                 });
                     }
                 });
+
 
                 builder.show();
 
@@ -543,7 +567,7 @@ public class ChatActivity
         switch (v.getId()) {
             case R.id.send_button:
 
-                if (mMessageEdit.getText().toString().isEmpty()) {
+                if (mMessageEdit.getText().toString().trim().isEmpty()) {
                     return;
                 }
 
