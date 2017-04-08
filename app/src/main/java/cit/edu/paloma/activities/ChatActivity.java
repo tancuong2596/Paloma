@@ -48,6 +48,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -89,8 +90,6 @@ public class ChatActivity
     private static final int ACTION_REQUEST_GALLERY = 0;
     private static final int ACTION_REQUEST_CAMERA = 1;
     private static final int ACTION_REQUEST_FILE = 2;
-
-    private static final int OPEN_FILE_WITH_APP_RC = 0;
 
     private Button mSendButton;
     private EditText mMessageEdit;
@@ -154,8 +153,7 @@ public class ChatActivity
     private boolean ensurePermission(String... permissions) {
         ArrayList<String> notGrantedPermissions = new ArrayList<>();
         for (String permission : permissions) {
-            if (ActivityCompat.checkSelfPermission(ChatActivity.this, permission) !=
-                    PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(ChatActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
                 notGrantedPermissions.add(permission);
             }
         }
@@ -172,8 +170,7 @@ public class ChatActivity
         }
 
         for (String permission : permissions) {
-            if (ActivityCompat.checkSelfPermission(ChatActivity.this, permission) !=
-                    PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(ChatActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
                 Log.v(TAG, "Cannot grant " + permission);
                 return false;
             }
@@ -233,7 +230,7 @@ public class ChatActivity
             case ACTION_REQUEST_CAMERA:
                 if (data != null) {
                     Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                    String randomFileName = "Snapshot " + DateTimeUtils.getScreenshotDateTime(System.currentTimeMillis());
+                    String randomFileName = "Snapshot_" + DateTimeUtils.getScreenshotDateTime(System.currentTimeMillis());
                     File file = new File(this.getCacheDir(), randomFileName);
                     file.deleteOnExit();
                     try (FileOutputStream out = new FileOutputStream(file)) {
@@ -540,8 +537,27 @@ public class ChatActivity
                 builder.show();
                 break;
             case R.id.action_add_members:
-                Intent intent = new Intent(this, AddFriendsActivity.class);
-                startActivity(intent);
+                String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+                final Intent intent = new Intent(this, AddFriendsActivity.class);
+                final Bundle bundle = new Bundle();
+                bundle.putString(AddFriendsActivity.PARAM_GROUP_CHAT_ID, groupId);
+                FirebaseUtils
+                        .getChatGroupsRef()
+                        .child(groupId)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
+                                bundle.putStringArrayList(AddFriendsActivity.PARAM_ADDED_USERS_ID, new ArrayList<>(chatGroup.getMembers().keySet()));
+                                intent.putExtras(bundle);
+                                startActivity(intent);
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
                 break;
         }
         return super.onOptionsItemSelected(item);

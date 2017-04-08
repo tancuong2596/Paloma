@@ -21,6 +21,6 @@
     <item
         android:id="@+id/action_add_members"
         app:showAsAction="never"
-        android:title="Add Members"/>
+        android:title="Add/Remove Members"/>
 
 </menu>

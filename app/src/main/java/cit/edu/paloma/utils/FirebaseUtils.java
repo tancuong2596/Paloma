@@ -140,7 +140,7 @@ public class FirebaseUtils {
                                         .addOnFailureListener(new OnFailureListener() {
                                             @Override
                                             public void onFailure(@NonNull Exception e) {
-                                                Log.v(TAG, "Failed to delete file when delete message");
+                                                Log.v(TAG, "Failed to delete file after deleting message");
                                             }
                                         });
                                 break;
