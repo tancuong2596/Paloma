@@ -2,8 +2,10 @@ package cit.edu.paloma.activities;
 
 import android.Manifest;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,21 +23,32 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
+import android.text.InputType;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.MutableData;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -45,20 +58,23 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.TimerTask;
 import java.util.UUID;
 
 import cit.edu.paloma.R;
 import cit.edu.paloma.adapters.MessagesListAdapter;
+import cit.edu.paloma.datamodals.ChatGroup;
 import cit.edu.paloma.datamodals.Message;
+import cit.edu.paloma.fragments.SuggestedFriendsListFragment;
 import cit.edu.paloma.misc.IdentifierGenerator;
 import cit.edu.paloma.utils.DateTimeUtils;
 import cit.edu.paloma.utils.FirebaseUtils;
 import cit.edu.paloma.utils.MessagesAdapterUtils;
 
 import static android.provider.MediaStore.ACTION_IMAGE_CAPTURE;
-import static android.provider.MediaStore.MEDIA_IGNORE_FILENAME;
 
 @SuppressWarnings("VisibleForTests")
 public class ChatActivity
@@ -77,15 +93,13 @@ public class ChatActivity
 
     private Button mSendButton;
     private EditText mMessageEdit;
-    private ListView mMessagesList;
+    public ListView mMessagesList;
     private ActionBar mActionBar;
-    private AlertDialog mGroupChatRenameDialog;
     private TextView mEmptyConversationText;
     private ProgressDialog mImageUploadProcessDialog;
     private android.app.LoaderManager mLoaderManager;
     private NotificationManager mNotifyManager;
     private IdentifierGenerator mIdGenerator;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,24 +129,6 @@ public class ChatActivity
         mMessagesList.setOnItemClickListener(this);
         mMessagesList.setOnItemLongClickListener(this);
 
-        mGroupChatRenameDialog = new AlertDialog
-                .Builder(this, R.style.DialogTheme)
-                .setView(getLayoutInflater().inflate(R.layout.input_box_dialog, null))
-                .setTitle("Name your group")
-                .setPositiveButton("Create", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .create();
-
         mImageUploadProcessDialog = new ProgressDialog(this);
 
         mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -157,8 +153,7 @@ public class ChatActivity
     private boolean ensurePermission(String... permissions) {
         ArrayList<String> notGrantedPermissions = new ArrayList<>();
         for (String permission : permissions) {
-            if (ActivityCompat.checkSelfPermission(ChatActivity.this, permission) !=
-                    PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(ChatActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
                 notGrantedPermissions.add(permission);
             }
         }
@@ -175,8 +170,7 @@ public class ChatActivity
         }
 
         for (String permission : permissions) {
-            if (ActivityCompat.checkSelfPermission(ChatActivity.this, permission) !=
-                    PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(ChatActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
                 Log.v(TAG, "Cannot grant " + permission);
                 return false;
             }
@@ -236,14 +230,13 @@ public class ChatActivity
             case ACTION_REQUEST_CAMERA:
                 if (data != null) {
                     Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                    String randomFileName = "Snapshot " + DateTimeUtils.getScreenshotDateTime(System.currentTimeMillis());
+                    String randomFileName = "Snapshot_" + DateTimeUtils.getScreenshotDateTime(System.currentTimeMillis());
                     File file = new File(this.getCacheDir(), randomFileName);
+                    file.deleteOnExit();
                     try (FileOutputStream out = new FileOutputStream(file)) {
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
                     } catch (IOException e) {
                         e.printStackTrace();
-                    } finally {
-                        file.deleteOnExit();
                     }
                     bitmapsUris.add(Uri.fromFile(file));
                 }
@@ -350,6 +343,7 @@ public class ChatActivity
                                 .setContentTitle("Failed")
                                 .setContentText(e.getMessage())
                                 .setSmallIcon(R.mipmap.ic_failed);
+
                         synchronized (mNotifyManager) {
                             mNotifyManager.notify(id, mBuilder.build());
                             mIdGenerator.putBackInt(id);
@@ -469,6 +463,8 @@ public class ChatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        AlertDialog.Builder builder;
+
         switch (item.getItemId()) {
             case android.R.id.home:
                 onBackPressed();
@@ -478,6 +474,90 @@ public class ChatActivity
                 break;
             case R.id.action_send_image:
                 chooseImageSource();
+                break;
+            case R.id.action_rename_group:
+                builder = new AlertDialog.Builder(ChatActivity.this);
+                builder.setTitle("Name of your group");
+
+                String oldGroupName = "";
+                if (mActionBar != null) {
+                    oldGroupName = mActionBar.getTitle().toString();
+                }
+
+                final EditText input = new EditText(ChatActivity.this);
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                input.setText(oldGroupName);
+
+                builder.setView(input);
+
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.setPositiveButton("Rename", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+                        final String newGroupName = input.getText().toString();
+
+                        FirebaseUtils
+                                .getChatGroupsRef()
+                                .child(groupId)
+                                .runTransaction(new Transaction.Handler() {
+                                    @Override
+                                    public Transaction.Result doTransaction(MutableData mutableData) {
+                                        ChatGroup chatGroup = mutableData.getValue(ChatGroup.class);
+
+                                        if (chatGroup == null) {
+                                            return Transaction.success(mutableData);
+                                        }
+
+                                        chatGroup.setGroupName(newGroupName);
+
+                                        mutableData.setValue(chatGroup);
+
+                                        return Transaction.success(mutableData);
+                                    }
+
+                                    @Override
+                                    public void onComplete(DatabaseError databaseError, boolean committed, DataSnapshot dataSnapshot) {
+                                        if (committed) {
+                                            if (mActionBar != null) {
+                                                mActionBar.setTitle(newGroupName);
+                                            }
+                                        }
+                                    }
+                                });
+                    }
+                });
+
+                builder.show();
+                break;
+            case R.id.action_add_members:
+                String groupId = getIntent().getStringExtra(PARAM_GROUP_CHAT_ID);
+                final Intent intent = new Intent(this, AddFriendsActivity.class);
+                final Bundle bundle = new Bundle();
+                bundle.putString(AddFriendsActivity.PARAM_GROUP_CHAT_ID, groupId);
+                FirebaseUtils
+                        .getChatGroupsRef()
+                        .child(groupId)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                ChatGroup chatGroup = dataSnapshot.getValue(ChatGroup.class);
+                                bundle.putStringArrayList(AddFriendsActivity.PARAM_ADDED_USERS_ID, new ArrayList<>(chatGroup.getMembers().keySet()));
+                                intent.putExtras(bundle);
+                                startActivity(intent);
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -495,7 +575,7 @@ public class ChatActivity
         }
     }
 
-    private void scrollToEnd() {
+    public void scrollToEnd() {
         mMessagesList.post(new TimerTask() {
             @Override
             public void run() {
@@ -509,7 +589,7 @@ public class ChatActivity
         switch (v.getId()) {
             case R.id.send_button:
 
-                if (mMessageEdit.getText().toString().isEmpty()) {
+                if (mMessageEdit.getText().toString().trim().isEmpty()) {
                     return;
                 }
 
@@ -544,74 +624,184 @@ public class ChatActivity
 
         switch (item.getContentType()) {
             case Message.IMAGE:
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(content.get("content").toString()));
-                startActivity(intent);
+                openInBrowser(content);
                 break;
             case Message.FILE:
                 Toast.makeText(this, "Starting to download the file", Toast.LENGTH_LONG).show();
-                if (ensurePermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                    if (downloadDir.exists()) {
-                        File file = new File(downloadDir, item.getContent().get("remotename").toString());
-                        file.deleteOnExit();
-
-                        final NotificationCompat.Builder builder = new NotificationCompat.Builder(ChatActivity.this);
-                        builder.setProgress(100, 0, true);
-                        builder.setSmallIcon(R.drawable.ic_download);
-                        builder.setContentText("Downloading");
-                        builder.setSubText(item.getContent().get("filename").toString());
-
-                        final int notificationId = mIdGenerator.nextInt();
-                        synchronized (mNotifyManager) {
-                            mNotifyManager.notify(notificationId, builder.build());
-                        }
-
-                        FirebaseStorage
-                                .getInstance()
-                                .getReferenceFromUrl(item.getContent().get("content").toString())
-                                .getFile(file)
-                                .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                                    @Override
-                                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                                        builder.setProgress(1, 1, false);
-                                        builder.setContentText("Download completed");
-                                        builder.setSmallIcon(R.mipmap.ic_completed);
-                                        synchronized (mNotifyManager) {
-                                            mNotifyManager.notify(notificationId, builder.build());
-                                            mIdGenerator.putBackInt(notificationId);
-                                        }
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        builder.setProgress(1, 1, false);
-                                        builder.setContentText("Download failed");
-                                        builder.setSmallIcon(R.mipmap.ic_failed);
-                                        synchronized (mNotifyManager) {
-                                            mNotifyManager.notify(notificationId, builder.build());
-                                            mIdGenerator.putBackInt(notificationId);
-                                        }
-                                    }
-                                });
-                    }
-                }
+                downloadFileFromFirebase(item);
                 break;
+        }
+    }
+
+    private void openInBrowser(HashMap<String, Object> content) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(content.get("content").toString()));
+        startActivity(intent);
+    }
+
+    private Intent makeOpenIntent(String filePath) {
+        File file = new File(filePath);
+        Uri uri = Uri.fromFile(file);
+
+        MimeTypeMap mimeMap = MimeTypeMap.getSingleton();
+        String ext = MimeTypeMap.getFileExtensionFromUrl(file.getName());
+        String type = mimeMap.getMimeTypeFromExtension(ext);
+
+        if (type == null) {
+            type = "*/*";
+        }
+
+        Intent openIntent = new Intent(Intent.ACTION_VIEW);
+        openIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        openIntent.setDataAndType(uri, type);
+        return openIntent;
+    }
+
+
+    private void downloadFileFromFirebase(Message item) {
+        if (ensurePermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (downloadDir.exists()) {
+                final File file = new File(downloadDir, item.getContent().get("filename").toString());
+
+                final NotificationCompat.Builder builder = new NotificationCompat.Builder(ChatActivity.this);
+
+                builder.setProgress(100, 0, true);
+                builder.setSmallIcon(R.drawable.ic_download);
+                builder.setContentTitle("Downloading");
+                builder.setContentText(item.getContent().get("filename").toString());
+
+                final int notificationId = mIdGenerator.nextInt();
+                synchronized (mNotifyManager) {
+                    mNotifyManager.notify(notificationId, builder.build());
+                }
+
+                FirebaseStorage
+                        .getInstance()
+                        .getReferenceFromUrl(item.getContent().get("content").toString())
+                        .getFile(file)
+                        .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                PendingIntent pendingIntent =
+                                        PendingIntent.getActivity(ChatActivity.this, 0, makeOpenIntent(file.getAbsolutePath()), PendingIntent.FLAG_CANCEL_CURRENT);
+                                builder.setContentIntent(pendingIntent);
+
+                                builder.setProgress(1, 1, false);
+                                builder.setContentTitle("Download completed");
+                                builder.setSmallIcon(R.mipmap.ic_completed);
+
+                                synchronized (mNotifyManager) {
+                                    mNotifyManager.notify(notificationId, builder.build());
+                                    mIdGenerator.putBackInt(notificationId);
+                                }
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                builder.setProgress(1, 1, false);
+                                builder.setContentTitle("Download failed");
+                                builder.setSmallIcon(R.mipmap.ic_failed);
+                                synchronized (mNotifyManager) {
+                                    mNotifyManager.notify(notificationId, builder.build());
+                                    mIdGenerator.putBackInt(notificationId);
+                                }
+                            }
+                        });
+            }
         }
     }
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         MessagesListAdapter adapter = (MessagesListAdapter) parent.getAdapter();
-        Message item = adapter.getItem(position);
-        HashMap<String, Object> content = item.getContent();
+        final Message item = adapter.getItem(position);
+        final HashMap<String, Object> content = item.getContent();
+        final FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        switch (item.getContentType()) {
+        ArrayList<String> fileActions = new ArrayList<>(Arrays.asList("Download", "Delete", "Copy Link"));
+        ArrayList<String> textActions = new ArrayList<>(Arrays.asList("Edit", "Delete", "Copy Text"));
+        ArrayList<String> imageActions = new ArrayList<>(Arrays.asList("View in Browser", "Download", "Delete", "Copy Link"));
 
+        ArrayList<String> actions = fileActions;
+        if (item.getContentType() == Message.IMAGE) {
+            actions = imageActions;
+        } else {
+            actions = textActions;
         }
 
+        if (currentUser != null) {
+            if (!currentUser.getUid().equals(item.getSenderId())) {
+                actions.remove("Delete");
+                actions.remove("Edit");
+            }
+        }
+
+        final String[] menuItems = new String[actions.size()];
+        actions.toArray(menuItems);
+
+        new AlertDialog.Builder(this)
+                .setItems(menuItems, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String menuItem = menuItems[which];
+                        if (menuItem.equalsIgnoreCase("delete")) {
+                            FirebaseUtils.deleteMessage(item);
+                        } else if (menuItem.equalsIgnoreCase("download")) {
+                            downloadFileFromFirebase(item);
+                        } else if (menuItem.equalsIgnoreCase("copy link") || menuItem.equalsIgnoreCase("copy text")) {
+                            copyContentToClipboard(content);
+                        } else if (menuItem.equalsIgnoreCase("edit")) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
+                            builder.setTitle("Edit your message");
+
+                            final EditText input = new EditText(ChatActivity.this);
+                            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                            input.setMinLines(1);
+                            input.setMinHeight(50);
+                            builder.setView(input);
+
+                            input.setText(item.getContent().get("content").toString());
+
+                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    CharSequence text = input.getText().toString();
+                                    HashMap<String, Object> updateChildren = new HashMap<>();
+                                    HashMap<String, Object> content = item.getContent();
+                                    content.put("content", text);
+                                    updateChildren.put(item.getGroupChatId() + "/" + item.getMessageId() + "/content", content);
+                                    FirebaseUtils
+                                            .getMessagesRef()
+                                            .updateChildren(updateChildren);
+                                }
+                            });
+
+                            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                            builder.show();
+                        } else if (menuItem.equalsIgnoreCase("view in browser")) {
+                            openInBrowser(content);
+                        }
+                    }
+                })
+                .show();
+
         return true;
+    }
+
+    private void copyContentToClipboard(HashMap<String, Object> content) {
+        ClipboardManager mClipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (mClipboardManager != null) {
+            ClipData clipData = ClipData.newPlainText("downloadLink", content.get("content").toString());
+            Toast.makeText(ChatActivity.this, "Content Copied", Toast.LENGTH_SHORT).show();
+            mClipboardManager.setPrimaryClip(clipData);
+        }
     }
 }

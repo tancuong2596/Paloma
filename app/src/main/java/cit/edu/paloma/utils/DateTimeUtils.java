@@ -15,4 +15,10 @@ public class DateTimeUtils {
         format.setTimeZone(TimeZone.getDefault());
         return format.format(new Date(timestamp));
     }
+
+    public static String getScreenshotDateTime(long timestamp) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd-hh-mm-a");
+        format.setTimeZone(TimeZone.getDefault());
+        return format.format(new Date(timestamp));
+    }
 }

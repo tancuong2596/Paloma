@@ -1,6 +1,7 @@
 package cit.edu.paloma.adapters;
 
 import android.content.Context;
+import android.media.Image;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
@@ -163,36 +164,42 @@ public class FriendsListAdapter extends BaseAdapter {
         }
 
         // variables for views
-        ImageView user1AvatarImage = (ImageView) view.findViewById(R.id.user1_avatar_image);
-        ImageView user2AvatarImage = (ImageView) view.findViewById(R.id.user2_avatar_image);
-        ImageView user3AvatarImage = (ImageView) view.findViewById(R.id.user3_avatar_image);
+        final ImageView[] userAvatarImages = {
+                (ImageView) view.findViewById(R.id.user1_avatar_image),
+                (ImageView) view.findViewById(R.id.user2_avatar_image),
+                (ImageView) view.findViewById(R.id.user3_avatar_image)
+        };
         TextView tripleMainText = (TextView) view.findViewById(R.id.triple_main_text);
         TextView tripleSubText = (TextView) view.findViewById(R.id.triple_sub_text);
 
         // three first users
-        String[] userAvatars = new String[]{"", "", ""};
         int index = 0;
         for (String key : chatGroup.getMembers().keySet()) {
             if (index >= 3) {
                 break;
             }
-            userAvatars[index] = (String) chatGroup.getMembers().get(key);
+
+            final int finalIndex = index;
+            FirebaseUtils
+                    .getUsersRef()
+                    .child(key)
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            User user = dataSnapshot.getValue(User.class);
+                            Picasso
+                                    .with(mContext)
+                                    .load(user.getAvatar())
+                                    .into(userAvatarImages[finalIndex]);
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
             index++;
         }
-
-        // load avatar for three first users
-        Picasso
-                .with(mContext)
-                .load(userAvatars[0])
-                .into(user1AvatarImage);
-        Picasso
-                .with(mContext)
-                .load(userAvatars[1])
-                .into(user2AvatarImage);
-        Picasso
-                .with(mContext)
-                .load(userAvatars[2])
-                .into(user3AvatarImage);
 
         // set group name which is combination of name of all users
         if (chatGroup.getGroupName() == null || chatGroup.getGroupName().trim().isEmpty()) {
@@ -225,10 +232,15 @@ public class FriendsListAdapter extends BaseAdapter {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         StringBuilder name = new StringBuilder();
+                        int count = 0;
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             User user = snapshot.getValue(User.class);
                             if (members.containsKey(user.getUserId())) {
                                 name.append(user.getFullName()).append(", ");
+                                count++;
+                                if (count >= 3) {
+                                    break;
+                                }
                             }
                         }
 
@@ -262,7 +274,7 @@ public class FriendsListAdapter extends BaseAdapter {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         // variables for views
-        ImageView avatarImage = (ImageView) view.findViewById(R.id.usr_avatar_image);
+        final ImageView avatarImage = (ImageView) view.findViewById(R.id.usr_avatar_image);
         final TextView mainLeftInfoText = (TextView) view.findViewById(R.id.usr_main_left_info_text);
         final TextView subLeftInfoText = (TextView) view.findViewById(R.id.usr_sub_left_info_text);
         final View leftIndicatorView = view.findViewById(R.id.usr_left_indicator_view);
@@ -270,25 +282,47 @@ public class FriendsListAdapter extends BaseAdapter {
         TextView rightInfoText = (TextView) view.findViewById(R.id.usr_right_info_text);
 
         // the only user different from the current one
-        String avatar = "";
-        String userId = "";
 
         if (currentUser == null) {
             return view;
         }
 
-        for (String key : chatGroup.getMembers().keySet()) {
-            if (!key.equals(currentUser.getUid())) {
-                avatar = (String) chatGroup.getMembers().get(key); 
-                userId = key;
+        for (String userId : chatGroup.getMembers().keySet()) {
+            if (!userId.equals(currentUser.getUid())) {
+                FirebaseUtils
+                        .getUsersRef()
+                        .child(userId)
+                        .addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                User user = dataSnapshot.getValue(User.class);
+                                Picasso
+                                        .with(mContext)
+                                        .load(user.getAvatar())
+                                        .into(avatarImage);
+
+                                mainLeftInfoText.setText(user.getFullName());
+
+                                if (subLeftInfoText.getText() == null || subLeftInfoText.getText().toString().isEmpty()) {
+                                    subLeftInfoText.setText(user.getEmail());
+                                }
+
+                                if (user.isOnline()) {
+                                    leftIndicatorView.setBackground(ContextCompat.getDrawable(mContext, R.drawable.is_online));
+                                } else {
+                                    leftIndicatorView.setBackground(ContextCompat.getDrawable(mContext, R.drawable.is_offline));
+                                }
+
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
                 break;
             }
         }
-
-        Picasso
-                .with(mContext)
-                .load(avatar)
-                .into(avatarImage);
 
         String recentMessage = null;
 
@@ -301,37 +335,6 @@ public class FriendsListAdapter extends BaseAdapter {
         } else {
             subLeftInfoText.setText(null);
         }
-
-        FirebaseUtils
-                .getUsersRef()
-                .orderByChild("userId")
-                .equalTo(userId)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            User user = snapshot.getValue(User.class);
-
-                            mainLeftInfoText.setText(user.getFullName());
-
-                            if (subLeftInfoText.getText() == null || subLeftInfoText.getText().toString().isEmpty()) {
-                                subLeftInfoText.setText(user.getEmail());
-                            }
-
-                            if (user.isOnline()) {
-                                leftIndicatorView.setBackground(ContextCompat.getDrawable(mContext, R.drawable.is_online));
-                            } else {
-                                leftIndicatorView.setBackground(ContextCompat.getDrawable(mContext, R.drawable.is_offline));
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
 
         rightButton.setVisibility(View.GONE);
         rightInfoText.setVisibility(View.GONE);
