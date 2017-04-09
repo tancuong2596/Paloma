@@ -27,11 +27,6 @@
         </activity>
 
         <activity
-            android:name=".activities.UserDetailsActivity"
-            android:theme="@style/FragmentTheme">
-        </activity>
-
-        <activity
             android:name=".activities.ChatActivity"
             android:launchMode="singleTop"
             android:parentActivityName=".activities.MainActivity"

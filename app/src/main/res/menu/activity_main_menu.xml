@@ -3,12 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/action_main_user_settings"
-        android:showAsAction="never"
-        tools:ignore="AppCompatResource"
-        android:title="@string/user_settings" />
-
-    <item
         android:id="@+id/action_main_logout"
         android:showAsAction="never"
         tools:ignore="AppCompatResource"
